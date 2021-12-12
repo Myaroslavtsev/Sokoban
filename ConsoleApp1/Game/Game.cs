@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
-using System.IO;
 
 namespace Sokoban
 {
@@ -90,21 +89,25 @@ namespace Sokoban
                     QuitRequested = true;
                     return "";
                 case "help":
-                    return GetHelpMessage();
+                    return Files.GetHelpMessage();
                 case "about":
-                    return GetAboutMessage();
+                    return Files.GetAboutMessage();
                 case "levels":
-                    return GetLevelList();
+                    return Files.GetLevelList();
                 case "options":
                     return MakeOptionList();
                 case "load":
-                    return commandWords.Length == 1 ? LoadGame("savegame.csv") : LoadGame(commandWords[1]);
+                    return commandWords.Length == 1 ? 
+                        Files.LoadGame("savegame.csv") : Files.LoadGame(commandWords[1]);
                 case "save":
-                    return commandWords.Length == 1 ? SaveGame("savegame.csv") : SaveGame(commandWords[1]);
+                    return commandWords.Length == 1 ? 
+                        Files.SaveGame("savegame.csv") : Files.SaveGame(commandWords[1]);
                 case "addmoves":
-                    return commandWords.Length == 1 ? "Move count not specified" : AddMoves(commandWords[1]);
+                    return commandWords.Length == 1 ? 
+                        "Move count not specified" : AddMoves(commandWords[1]);
                 case "setforce":
-                    return commandWords.Length == 1 ? "Force value not specified" : SetPlayerForce(commandWords[1]);
+                    return commandWords.Length == 1 ? 
+                        "Force value not specified" : SetPlayerForce(commandWords[1]);
             }
             object option;
             if (Enum.TryParse(typeof(GameOption), commandWords[0], true, out option))
@@ -252,67 +255,6 @@ namespace Sokoban
             return $"Player force set to {Map.Player.Force}";
         }
 
-        private string LoadGame(string filename)
-        {
-            var fullFileName = Directory.GetCurrentDirectory() + "\\levels\\" + filename;
-            if (!File.Exists(fullFileName))
-                return $"File {filename} not found";
-            // loading file
-            return $"{filename} loaded";
-        }
-
-        private string SaveGame(string filename)
-        {
-            var fullFileName = Directory.GetCurrentDirectory() + "\\levels\\" + filename;
-            FileInfo fi = null;
-            try
-            {
-                fi = new FileInfo(fullFileName);
-            }
-            catch (ArgumentException) { }
-            catch (PathTooLongException) { }
-            catch (NotSupportedException) { }
-            if (ReferenceEquals(fi, null))
-                return $"File name {filename} is invalid";
-            var overwritten = File.Exists(fullFileName);
-            // saving file
-            if (overwritten)
-                return $"File {filename} overwritten";
-            return $"File {filename} created";
-        }
-
-        private string GetLevelList()
-        {
-            return "Valid game files in \\levels directory:\r\n";
-        }
-
-        private string GetHelpMessage()
-        {
-            return
-                "Press arrow keys to play if game is running.\r\n" +
-                "  Command line commands implemented:\r\n" +
-                "   quit - quit without saving\r\n" +
-                //"   levels - get available level list\r\n" +
-                "   load - load saved game\r\n" +
-                "   load filename.csv - load game level\r\n" +
-                "   save - save current game\r\n" +
-                "   save filename.csv - save game to file\r\n" +                
-                "   options - print active option list\r\n" +
-                "     gravity - turn gravity on/off\r\n" +
-                "     movelimit - turn level move limit on/off\r\n" +
-                "   addmoves 8 - increase move limit by 8\r\n" +
-                "   setforce 3 - allows move 3 boxes at once\r\n" +
-                "   about - get developer's email\r\n" +
-                "   help - repeat this message\r\n";
-        }
-
-        private string GetAboutMessage()
-        {
-            return
-                "(c) myaroslavtsev(at)yandex.ru\r\n" +
-                "      December 2021\r\n";
-        }
-
         private void GenerateGameObjects()
         {
             Map = new GameMap();
@@ -321,7 +263,7 @@ namespace Sokoban
 
         private void SetInitialGameData(string filename)
         {
-            LoadGame(filename);
+            Files.LoadGame(filename);
             Map.GenerateTestMap(); // use for debug only
             MaxMoves = 100;
             Playable = true; // for debug
