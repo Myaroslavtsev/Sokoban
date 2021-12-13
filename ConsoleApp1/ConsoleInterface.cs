@@ -17,21 +17,30 @@ namespace Sokoban
 
         static void Main(string[] args)
         {
-            Game game = new Game("");
+            Game game = new Game("savegame.csv");
             var watch = new Stopwatch();
             watch.Start();
-            InitGame();
-            do {
-                Console.Clear();
-                WriteHeader(game);
-                DrawMap(5, game.Map);
-                WriteFooter(game);
-                while (!Console.KeyAvailable && watch.ElapsedMilliseconds < animationMilliseconds);
+            InitDrawData();
+            Draw(game);
+            while (!game.QuitRequested) 
+            {                
+                while (!Console.KeyAvailable &&
+                    !(game.GameOptions.Contains(GameOption.Gravity) &&
+                    watch.ElapsedMilliseconds > animationMilliseconds)) ;
                 DoGameEvents(game, watch);
-            } while (!game.QuitRequested);
+                Draw(game);
+            } 
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.BackgroundColor = ConsoleColor.Black;
+        }
+
+        private static void Draw(Game game)
+        {
+            Console.Clear();
+            WriteHeader(game);
+            DrawMap(5, game.Map);
+            WriteFooter(game);
         }
 
         private static void DoGameEvents(Game game, Stopwatch watch)
@@ -40,10 +49,11 @@ namespace Sokoban
             {
                 watch.Reset();
                 watch.Start();
-                game.UpdateCells();
+                if (game.Playable)
+                    game.UpdateCells();
             }
             if (Console.KeyAvailable)
-                AnalyzeKey(game, Console.ReadKey(true));
+                AnalyzeKey(game, Console.ReadKey(true));            
             var resultMessage = game.CheckGameState();
             if (resultMessage != string.Empty)
                 commandResult = resultMessage;
@@ -81,8 +91,6 @@ namespace Sokoban
             var width = map.Width;
             var height = map.Height;
             var left = Math.Max((37 - width * cellMarkWidth) / 2, 2); // 37 = header width + 2 * margin
-            //var dynamicLayer = map.MakeDynamicLayer();
-            var a = map.StaticLayer[4][5];
             for (var y = 0; y < height; y++)
                 for(var x = 0; x < width; x++)
                 {                    
@@ -101,7 +109,7 @@ namespace Sokoban
             ConsoleWrite(ConsoleColor.White, ConsoleColor.DarkYellow, 2, 2, "                 Game:           ");
             ConsoleWrite(ConsoleColor.White, ConsoleColor.DarkGreen, 2, 3, "                                 ");
             if (game.GameOptions.Contains(GameOption.MoveLimit))
-                ConsoleWrite(ConsoleColor.White, ConsoleColor.DarkYellow, 3, 2, $"Moves {game.Map.Player.Moves}/{game.MaxMoves}");
+                ConsoleWrite(ConsoleColor.White, ConsoleColor.DarkYellow, 3, 2, $"Moves {game.Map.Player.Moves}/{game.Map.Player.MaxMoves}");
             else
                 ConsoleWrite(ConsoleColor.White, ConsoleColor.DarkYellow, 3, 2, $"Moves {game.Map.Player.Moves}");
             if (game.Playable)
@@ -134,7 +142,7 @@ namespace Sokoban
             Console.Write(text);
         }
 
-        private static void InitGame()
+        private static void InitDrawData()
         {
             commandString = "";
             commandResult = "Type help for help";

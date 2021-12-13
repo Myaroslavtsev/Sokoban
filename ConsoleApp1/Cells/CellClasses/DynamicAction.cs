@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace Sokoban
 {
@@ -10,9 +8,11 @@ namespace Sokoban
         public IDynamicCell TransformTo;
         public Point Move;
 
-        public DynamicAction(Point move, bool WillTransform, IDynamicCell transformTo)
+        public DynamicAction(Point move, bool willTransform, IDynamicCell transformTo)
         {
             Move = move;
+            WillTransform = willTransform;
+            TransformTo = transformTo;
         }
     }
 }

@@ -6,11 +6,9 @@ using System.Drawing;
 namespace Sokoban
 {
     class Game
-    {        
+    {
         public bool QuitRequested { get; private set; }
-        //public string CommandResult { get; private set; }
-        public GameMap Map { get; private set; }        
-        public int MaxMoves { get; private set; }
+        public GameMap Map { get; private set; }
         public HashSet<GameOption> GameOptions { get; private set; }
         public bool Playable { get; private set; }
 
@@ -18,6 +16,19 @@ namespace Sokoban
         {
             GenerateGameObjects();
             SetInitialGameData(filename);
+        }
+
+        public string Start()
+        {
+            var gameState = CheckGameState();
+            if (gameState == string.Empty)
+                Playable = true;
+            return gameState;
+        }
+
+        public void Stop()
+        {
+            Playable = false;
         }
 
         public void MovePlayer(Point direction)
@@ -38,7 +49,7 @@ namespace Sokoban
                 Map.DynamicLayer[newPos.Y][newPos.X].CellAction = new DynamicAction(direction, false, null);
                 newPos = newPos.Add(direction);
             }
-            PerformCellActions();                        
+            PerformCellActions();
         }
 
         public void UpdateCells()
@@ -52,7 +63,7 @@ namespace Sokoban
                     {
                         if (Map.DynamicLayer[y][x] is Box)
                         {
-                            if ((Map.DynamicLayer[y + 1][x] is null) &&((Map.StaticLayer[y + 1][x] is null) ||
+                            if ((Map.DynamicLayer[y + 1][x] is null) && ((Map.StaticLayer[y + 1][x] is null) ||
                                 Map.StaticLayer[y + 1][x].AllowsToEnter(Map.DynamicLayer[y][x] as Box, this)))
                                 Map.DynamicLayer[y][x].CellAction = new DynamicAction(down, false, null);
                         }
@@ -60,13 +71,13 @@ namespace Sokoban
                     PerformCellActions();
                 }
             }
-            PerformCellActions();            
+            PerformCellActions();
         }
 
         public string CheckGameState()
         {
             if (!Playable)
-                return string.Empty;                        
+                return string.Empty;
             if (PlayerWin())
             {
                 Playable = false;
@@ -97,24 +108,34 @@ namespace Sokoban
                 case "options":
                     return MakeOptionList();
                 case "load":
-                    return commandWords.Length == 1 ? 
-                        Files.LoadGame("savegame.csv") : Files.LoadGame(commandWords[1]);
+                    return commandWords.Length == 1 ?
+                        Files.LoadGame("savegame.csv", this) : Files.LoadGame(commandWords[1], this);
                 case "save":
-                    return commandWords.Length == 1 ? 
-                        Files.SaveGame("savegame.csv") : Files.SaveGame(commandWords[1]);
+                    return commandWords.Length == 1 ?
+                        Files.SaveGame("savegame.csv", this) : Files.SaveGame(commandWords[1], this);
                 case "addmoves":
-                    return commandWords.Length == 1 ? 
+                    return commandWords.Length == 1 ?
                         "Move count not specified" : AddMoves(commandWords[1]);
                 case "setforce":
-                    return commandWords.Length == 1 ? 
+                    return commandWords.Length == 1 ?
                         "Force value not specified" : SetPlayerForce(commandWords[1]);
             }
-            object option;
-            if (Enum.TryParse(typeof(GameOption), commandWords[0], true, out option))
-                if (option.ToString().ToLower() == commandWords[0] && 
-                    Enum.IsDefined(typeof(GameOption), option)) 
-                    return InvertOption((GameOption)option);
+            if (Playable)
+            {
+                var invertOptionResult = CheckAndInvertOption(commandWords[0]);
+                if (invertOptionResult != string.Empty)
+                    return invertOptionResult;
+            }
             return "Type help for help";
+        }
+
+        public string CheckAndInvertOption(string optionName)
+        {
+            if (Enum.TryParse(typeof(GameOption), optionName, true, out object option))
+                if (option.ToString().ToLower() == optionName &&
+                    Enum.IsDefined(typeof(GameOption), option))
+                    return InvertOption((GameOption)option);
+            return string.Empty;
         }
 
         private int MovableBoxes(Point position, Point direction)
@@ -141,7 +162,7 @@ namespace Sokoban
             PerformStaticCellActions();   
             PerformDynamicCellActions();
             PerformPlayerActions(Map.Player);
-            Map.MakeDynamicLayer();
+            Map.UpdateDynamicLayer();
         }
 
         private void PerformStaticCellActions()
@@ -207,7 +228,8 @@ namespace Sokoban
 
         private bool MoveLimitReached()
         {
-            return GameOptions.Contains(GameOption.MoveLimit) && Map.Player.Moves >= MaxMoves;
+            return GameOptions.Contains(GameOption.MoveLimit) && 
+                Map.Player.Moves >= Map.Player.MaxMoves;
         }
 
         private string InvertOption(GameOption option)
@@ -263,10 +285,11 @@ namespace Sokoban
 
         private void SetInitialGameData(string filename)
         {
-            Files.LoadGame(filename);
-            Map.GenerateTestMap(); // use for debug only
-            MaxMoves = 100;
-            Playable = true; // for debug
+            Files.LoadGame(filename, this);
+            // following 3 lines are for debug only
+            /*Map.GenerateTestMap(); 
+            MaxMoves = 100; 
+            Playable = true;*/
         }
     }
 }

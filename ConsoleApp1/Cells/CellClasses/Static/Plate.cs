@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Sokoban
 {
-    class Plate : IStaticCell
+    class Plate : IStaticCellWithID
     {
         public char DataFileChar { get => '_'; }
 

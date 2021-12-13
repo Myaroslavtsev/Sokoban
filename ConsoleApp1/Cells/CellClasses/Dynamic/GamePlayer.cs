@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace Sokoban
 {
@@ -18,11 +16,11 @@ namespace Sokoban
 
         public DynamicAction CellAction { get; set; }
 
-        public int MaxMoves { get; private set; }
+        public int MaxMoves { get; set; }
 
-        public int Moves { get; private set; }
+        public int Moves { get; set; }
 
-        public int Force { get; private set; }
+        public int Force { get; set; }
 
         public int BombCount { get; set; }
 

@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 
 namespace Sokoban
 {
     class GameMap
     {
-        public List<List<IStaticCell>> StaticLayer { get; private set; }
-        public List<IDynamicCell> DynamicCells { get; private set; }
+        public List<List<IStaticCell>> StaticLayer { get; set; }
+        public List<IDynamicCell> DynamicCells { get; set; }
         public List<List<IDynamicCell>> DynamicLayer { get; private set; }
-        public GamePlayer Player { get; private set; }
+        public GamePlayer Player { get; set; }
         public int Height { get => StaticLayer is null ? 0 : StaticLayer.Count; }
         public int Width { get
             {
@@ -27,16 +26,6 @@ namespace Sokoban
             
         }
 
-        public void MakeDynamicLayer()
-        {
-            for (var y = 0; y < Height; y++)
-                for (var x = 0; x < Width; x++)
-                    DynamicLayer[y][x] = null;
-            foreach (var dynamicCell in DynamicCells)
-                DynamicLayer[dynamicCell.Position.Y][dynamicCell.Position.X] = dynamicCell;
-            DynamicLayer[Player.Position.Y][Player.Position.X] = Player;
-        }
-
         public void GenerateDynamicLayer()
         {
             DynamicLayer = new List<List<IDynamicCell>>();
@@ -46,6 +35,16 @@ namespace Sokoban
                 for (var x = 0; x < Width; x++)
                     DynamicLayer[y].Add(null);
             }
+        }
+
+        public void UpdateDynamicLayer()
+        {
+            for (var y = 0; y < Height; y++)
+                for (var x = 0; x < Width; x++)
+                    DynamicLayer[y][x] = null;
+            foreach (var dynamicCell in DynamicCells)
+                DynamicLayer[dynamicCell.Position.Y][dynamicCell.Position.X] = dynamicCell;
+            DynamicLayer[Player.Position.Y][Player.Position.X] = Player;
         }
 
         public bool Possible(Point position)
@@ -68,7 +67,7 @@ namespace Sokoban
             Player.Position = new Point(3, 1);
             Player.BombCount += 15;
             GenerateDynamicLayer();
-            MakeDynamicLayer();            
+            UpdateDynamicLayer();            
         }
     }
 }
