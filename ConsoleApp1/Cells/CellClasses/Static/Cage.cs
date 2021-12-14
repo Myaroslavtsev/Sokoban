@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 
 namespace Sokoban
 {
@@ -10,6 +10,6 @@ namespace Sokoban
 
         public StaticAction CellAction { get; set; }
 
-        public bool AllowsToEnter(IDynamicCell cell, Game game) => true;
+        public bool AllowsToEnter(IDynamicCell cell, GameMap map, HashSet<GameOption> options) => true;
     }
 }

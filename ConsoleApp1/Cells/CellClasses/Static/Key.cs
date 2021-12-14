@@ -19,10 +19,10 @@ namespace Sokoban
             ID = id;
         }
 
-        public bool AllowsToEnter(IDynamicCell cell, Game game)
+        public bool AllowsToEnter(IDynamicCell cell, GameMap map, HashSet<GameOption> options)
         {
             if (cell.CellType == DynamicCellType.Player)            
-                game.Map.Player.Keys.Add(ID);            
+                map.Player.Keys.Add(ID);            
             CellAction = new StaticAction(true, null);
             return true;
         }  

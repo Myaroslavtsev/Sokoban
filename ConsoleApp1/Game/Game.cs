@@ -29,50 +29,16 @@ namespace Sokoban
         public void Stop()
         {
             Playable = false;
-        }
-
-        public void MovePlayer(Point direction)
-        {
-            if (!Playable)
-                return;
-            var newPos = Map.Player.Position.Add(direction);
-            var boxCount = MovableBoxes(newPos, direction);
-            if (!Map.Possible(newPos) || boxCount < 0)
-                return;
-            if ((Map.StaticLayer[newPos.Y][newPos.X] is null) ||
-                Map.StaticLayer[newPos.Y][newPos.X].AllowsToEnter(Map.Player, this))
-            {
-                Map.Player.CellAction = new DynamicAction(direction, false, null);
-            }
-            for (var i = 0; i < boxCount; i++)
-            {
-                Map.DynamicLayer[newPos.Y][newPos.X].CellAction = new DynamicAction(direction, false, null);
-                newPos = newPos.Add(direction);
-            }
-            PerformCellActions();
-        }
+        }        
 
         public void UpdateCells()
         {
             if (GameOptions.Contains(GameOption.Gravity))
             {
-                var down = new Point(0, 1);
-                for (var y = Map.Height - 2; y >= 0; y--)
-                {
-                    for (var x = 0; x < Map.Width; x++)
-                    {
-                        if (Map.DynamicLayer[y][x] is Box)
-                        {
-                            if ((Map.DynamicLayer[y + 1][x] is null) && ((Map.StaticLayer[y + 1][x] is null) ||
-                                Map.StaticLayer[y + 1][x].AllowsToEnter(Map.DynamicLayer[y][x] as Box, this)))
-                                Map.DynamicLayer[y][x].CellAction = new DynamicAction(down, false, null);
-                        }
-                    }
-                    PerformCellActions();
-                }
+                RealizeGravity();
             }
             PerformCellActions();
-        }
+        }        
 
         public string CheckGameState()
         {
@@ -138,23 +104,43 @@ namespace Sokoban
             return string.Empty;
         }
 
-        private int MovableBoxes(Point position, Point direction)
+        public void MovePlayer(Point direction)
         {
-            int boxCount = 0;
-            while (Map.Possible(position) && (Map.DynamicLayer[position.Y][position.X] is Box))
+            if (!Playable)
+                return;
+            var newPos = Map.Player.Position.Add(direction);
+            var boxCount = Map.MovableBoxes(newPos, direction, GameOptions);
+            if (!Map.Possible(newPos) || boxCount < 0)
+                return;
+            if ((Map.StaticLayer[newPos.Y][newPos.X] is null) ||
+                Map.StaticLayer[newPos.Y][newPos.X].AllowsToEnter(Map.Player, Map, GameOptions))
             {
-                boxCount++;
-                position = position.Add(direction);
+                Map.Player.CellAction = new DynamicAction(direction, false, null);
             }
-            if (boxCount > Map.Player.Force)
-                return -1;
-            if (boxCount == 0)
-                return 0;
-            if (Map.Possible(position) && ((Map.StaticLayer[position.Y][position.X] is null) ||
-                Map.StaticLayer[position.Y][position.X].AllowsToEnter(
-                Map.DynamicLayer[position.Y - direction.Y][position.X - direction.X], this)))
-                return boxCount;
-            return -1;
+            for (var i = 0; i < boxCount; i++)
+            {
+                Map.DynamicLayer[newPos.Y][newPos.X].CellAction = new DynamicAction(direction, false, null);
+                newPos = newPos.Add(direction);
+            }
+            PerformCellActions();
+        }
+
+        private void RealizeGravity()
+        {
+            var down = new Point(0, 1);
+            for (var y = Map.Height - 2; y >= 0; y--)
+            {
+                for (var x = 0; x < Map.Width; x++)
+                {
+                    if (Map.DynamicLayer[y][x] is Box)
+                    {
+                        if ((Map.DynamicLayer[y + 1][x] is null) && ((Map.StaticLayer[y + 1][x] is null) ||
+                            Map.StaticLayer[y + 1][x].AllowsToEnter(Map.DynamicLayer[y][x] as Box, Map, GameOptions)))
+                            Map.DynamicLayer[y][x].CellAction = new DynamicAction(down, false, null);
+                    }
+                }
+                PerformCellActions();
+            }
         }
 
         private void PerformCellActions()

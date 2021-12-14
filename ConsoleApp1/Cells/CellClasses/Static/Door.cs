@@ -14,13 +14,13 @@ namespace Sokoban
 
         public int ID { get; private set; }
 
-        public bool AllowsToEnter(IDynamicCell cell, Game game)
+        public bool AllowsToEnter(IDynamicCell cell, GameMap map, HashSet<GameOption> options)
         {
             if (cell is GamePlayer)
             {
-                if (game.Map.Player.Keys.Contains(ID))
+                if (map.Player.Keys.Contains(ID))
                 {
-                    game.Map.Player.Keys.Remove(ID);
+                    map.Player.Keys.Remove(ID);
                     CellAction = new StaticAction(true, null);
                     return true;
                 }

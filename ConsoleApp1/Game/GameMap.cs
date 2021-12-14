@@ -68,6 +68,25 @@ namespace Sokoban
             Player.BombCount += 15;
             GenerateDynamicLayer();
             UpdateDynamicLayer();            
+        }        
+
+        public int MovableBoxes(Point position, Point direction, HashSet<GameOption> options)
+        {
+            int boxCount = 0;
+            while (Possible(position) && (DynamicLayer[position.Y][position.X] is Box))
+            {
+                boxCount++;
+                position = position.Add(direction);
+            }
+            if (boxCount > Player.Force)
+                return -1;
+            if (boxCount == 0)
+                return 0;
+            if (Possible(position) && ((StaticLayer[position.Y][position.X] is null) ||
+                StaticLayer[position.Y][position.X].AllowsToEnter(
+                DynamicLayer[position.Y - direction.Y][position.X - direction.X], this, options)))
+                return boxCount;
+            return -1;
         }
     }
 }

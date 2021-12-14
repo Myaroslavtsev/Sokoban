@@ -12,15 +12,15 @@ namespace Sokoban
 
         public StaticAction CellAction { get; set; }
 
-        public bool AllowsToEnter(IDynamicCell cell, Game game)
+        public bool AllowsToEnter(IDynamicCell cell, GameMap map, HashSet<GameOption> options)
         {
             if (cell is GamePlayer)
             {
-                if (game.GameOptions.Contains(GameOption.Iddqd))
+                if (options.Contains(GameOption.Iddqd))
                     return true;
-                if (game.Map.Player.BombCount > 0)
+                if (map.Player.BombCount > 0)
                 {
-                    game.Map.Player.BombCount--;
+                    map.Player.BombCount--;
                     CellAction = new StaticAction(true, null);
                     return true;
                 }
