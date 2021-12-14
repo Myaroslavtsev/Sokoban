@@ -47,9 +47,28 @@ namespace Sokoban
             DynamicLayer[Player.Position.Y][Player.Position.X] = Player;
         }
 
-        public bool Possible(Point position)
+        public bool PositionPossible(Point position)
         {
             return position.X >= 0 && position.Y >= 0 && position.X < Width && position.Y < Height;
+        }     
+
+        public int MovableBoxes(Point position, Point direction, HashSet<GameOption> options)
+        {
+            int boxCount = 0;
+            while (PositionPossible(position) && (DynamicLayer[position.Y][position.X] is Box))
+            {
+                boxCount++;
+                position = position.Add(direction);
+            }
+            if (boxCount > Player.Force)
+                return -1;
+            if (boxCount == 0)
+                return 0;
+            if (PositionPossible(position) && ((StaticLayer[position.Y][position.X] is null) ||
+                StaticLayer[position.Y][position.X].AllowsToEnter(
+                DynamicLayer[position.Y - direction.Y][position.X - direction.X], this, options)))
+                return boxCount;
+            return -1;
         }
 
         public void GenerateTestMap()
@@ -67,26 +86,7 @@ namespace Sokoban
             Player.Position = new Point(3, 1);
             Player.BombCount += 15;
             GenerateDynamicLayer();
-            UpdateDynamicLayer();            
-        }        
-
-        public int MovableBoxes(Point position, Point direction, HashSet<GameOption> options)
-        {
-            int boxCount = 0;
-            while (Possible(position) && (DynamicLayer[position.Y][position.X] is Box))
-            {
-                boxCount++;
-                position = position.Add(direction);
-            }
-            if (boxCount > Player.Force)
-                return -1;
-            if (boxCount == 0)
-                return 0;
-            if (Possible(position) && ((StaticLayer[position.Y][position.X] is null) ||
-                StaticLayer[position.Y][position.X].AllowsToEnter(
-                DynamicLayer[position.Y - direction.Y][position.X - direction.X], this, options)))
-                return boxCount;
-            return -1;
+            UpdateDynamicLayer();
         }
     }
 }

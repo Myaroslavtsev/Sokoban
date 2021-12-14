@@ -110,7 +110,7 @@ namespace Sokoban
                 return;
             var newPos = Map.Player.Position.Add(direction);
             var boxCount = Map.MovableBoxes(newPos, direction, GameOptions);
-            if (!Map.Possible(newPos) || boxCount < 0)
+            if (!Map.PositionPossible(newPos) || boxCount < 0)
                 return;
             if ((Map.StaticLayer[newPos.Y][newPos.X] is null) ||
                 Map.StaticLayer[newPos.Y][newPos.X].AllowsToEnter(Map.Player, Map, GameOptions))
