@@ -18,7 +18,10 @@ namespace Sokoban
                 return $"File {filename} is not a saved game";
             var readResult = ReadGameFromFile(filename, fullFileName, game);
             if (readResult == string.Empty)
+            {
+                game.MapChanged = true;
                 return $"{filename} loaded";
+            }
             return readResult;
         }
 

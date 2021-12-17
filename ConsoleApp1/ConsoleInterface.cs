@@ -6,10 +6,10 @@ using System.Drawing;
 // todo:
 // start tests
 // + text commands => interface
-// portals
+// portals; bomb doors
 // one style of map layers
 // common interface to all cells
-// draw when changed only
+// + draw when changed only
 // move player - where to check boxes count ?
 
 namespace Sokoban
@@ -25,8 +25,7 @@ namespace Sokoban
         private static Dictionary<StaticCellType, Dictionary<DynamicCellType, ConsoleColor>> backgroundColors;
         
         private static bool quitRequested;
-        private static bool mapChanged;
-        private static bool footerChanged;
+        private static bool footerChanged = true;
 
         static void Main(string[] args)
         {
@@ -37,9 +36,8 @@ namespace Sokoban
             Draw(game);
             while (!quitRequested) 
             {                
-                while (!Console.KeyAvailable &&
-                    !(game.GameOptions.Contains(GameOption.Gravity) &&
-                    watch.ElapsedMilliseconds > animationMilliseconds)) ;
+                while (!(Console.KeyAvailable ||
+                    watch.ElapsedMilliseconds > animationMilliseconds));
                 DoGameEvents(game, watch);
                 Draw(game);
             } 
@@ -50,10 +48,17 @@ namespace Sokoban
 
         private static void Draw(Game game)
         {
-            Console.Clear();
-            WriteHeader(game);
-            DrawMap(5, game.Map);
-            WriteFooter(game);
+            if (footerChanged) 
+                Console.Clear();
+            if (game.MapChanged || footerChanged)
+            {
+                WriteHeader(game); 
+                DrawMap(5, game.Map);
+            }
+            if (footerChanged) 
+                WriteFooter(game);
+            game.MapChanged = false;
+            footerChanged = false;
         }
 
         private static void DoGameEvents(Game game, Stopwatch watch)
@@ -79,6 +84,7 @@ namespace Sokoban
                 case ConsoleKey.Enter:
                     commandResult = StartCommand(game, commandString);                    
                     commandString = "";
+                    footerChanged = true;
                     return;
                 case ConsoleKey.UpArrow:
                     game.MovePlayer(new Point(0, -1));
@@ -94,9 +100,11 @@ namespace Sokoban
                     return;
                 case ConsoleKey.Backspace:
                     commandString = commandString.Substring(0, Math.Max(0, commandString.Length - 1));
+                    footerChanged = true;
                     return;
             }
             commandString += keyInfo.KeyChar;
+            footerChanged = true;
         }
 
         private static string StartCommand(Game game, string command)
@@ -174,6 +182,9 @@ namespace Sokoban
                     var cellMark = cellMarks[staticCell][dynamicCell];
                     ConsoleWrite(foreColor, backColor, x * cellMarkWidth + left, y + top, cellMark);
                 }
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.SetCursorPosition(4 + commandString.Length, 5 + map.Height);
         }
 
         private static void WriteHeader(Game game)

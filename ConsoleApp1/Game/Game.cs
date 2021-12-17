@@ -8,6 +8,7 @@ namespace Sokoban
     class Game
     {
         public GameMap Map { get; private set; }
+        public bool MapChanged { get; set; }
         public HashSet<GameOption> GameOptions { get; private set; }
         public bool Playable { get; private set; }
 
@@ -131,11 +132,12 @@ namespace Sokoban
                 {
                     if (!(Map.StaticLayer[y][x] is null) &&
                         !(Map.StaticLayer[y][x].CellAction is null))
-                    {
+                    
                         if (Map.StaticLayer[y][x].CellAction.WillTransform)
+                        {
                             Map.StaticLayer[y][x] = Map.StaticLayer[y][x].CellAction.TransformTo;
-
-                    }
+                            MapChanged = true;
+                        }
                     if (!(Map.StaticLayer[y][x] is null) &&
                         !(Map.StaticLayer[y][x].CellAction is null))
                         Map.StaticLayer[y][x].CellAction = null;
@@ -149,11 +151,16 @@ namespace Sokoban
                 if (!(Map.DynamicCells[i].CellAction is null))
                 {
                     if (Map.DynamicCells[i].CellAction.Move.X != 0 || Map.DynamicCells[i].CellAction.Move.Y != 0)
-                        Map.DynamicCells[i].Position = 
+                    {
+                        Map.DynamicCells[i].Position =
                             Map.DynamicCells[i].Position.Add(Map.DynamicCells[i].CellAction.Move);
+                        MapChanged = true;
+                    }
                     if (Map.DynamicCells[i].CellAction.WillTransform)
+                    {
                         Map.DynamicCells[i] = Map.DynamicCells[i].CellAction.TransformTo;
-                    
+                        MapChanged = true;
+                    }                    
                 }
                 if (!(Map.DynamicCells[i].CellAction is null))
                     Map.DynamicCells[i].CellAction = null;
@@ -167,6 +174,7 @@ namespace Sokoban
                 if (player.CellAction.Move.X != 0 || player.CellAction.Move.Y != 0)
                 {
                     player.Position = player.Position.Add(player.CellAction.Move);
+                    MapChanged = true;
                     player.CountMove();
                 }
                 player.CellAction = null;
