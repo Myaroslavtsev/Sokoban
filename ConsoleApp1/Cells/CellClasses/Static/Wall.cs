@@ -18,9 +18,9 @@ namespace Sokoban
             {
                 if (options.Contains(GameOption.Iddqd))
                     return true;
-                if (map.Player.BombCount > 0)
+                if ((cell as GamePlayer).BombCount > 0)
                 {
-                    map.Player.BombCount--;
+                    (cell as GamePlayer).BombCount--;
                     CellAction = new StaticAction(true, null);
                     return true;
                 }

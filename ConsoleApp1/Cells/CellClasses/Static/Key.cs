@@ -21,8 +21,8 @@ namespace Sokoban
 
         public bool AllowsToEnter(IDynamicCell cell, GameMap map, HashSet<GameOption> options)
         {
-            if (cell.CellType == DynamicCellType.Player)            
-                map.Player.Keys.Add(ID);            
+            if (cell.CellType == DynamicCellType.Player)
+                (cell as GamePlayer).Keys.Add(ID);            
             CellAction = new StaticAction(true, null);
             return true;
         }  

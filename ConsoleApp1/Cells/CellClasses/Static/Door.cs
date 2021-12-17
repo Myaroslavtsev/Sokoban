@@ -18,9 +18,9 @@ namespace Sokoban
         {
             if (cell is GamePlayer)
             {
-                if (map.Player.Keys.Contains(ID))
+                if ((cell as GamePlayer).Keys.Contains(ID))
                 {
-                    map.Player.Keys.Remove(ID);
+                    (cell as GamePlayer).Keys.Remove(ID);
                     CellAction = new StaticAction(true, null);
                     return true;
                 }
