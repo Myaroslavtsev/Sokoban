@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Sokoban
 {
-    class GamePlayer : IDynamicCell
+    public class GamePlayer : IDynamicCell
     {
         private const int moveLimit = 99999;
         private const int forceLimit = 100;

@@ -2,7 +2,7 @@
 
 namespace Sokoban
 {
-    class Cage : IStaticCell
+    public class Cage : IStaticCell
     {
         public StaticCellType CellType { get => StaticCellType.Cage; }
 

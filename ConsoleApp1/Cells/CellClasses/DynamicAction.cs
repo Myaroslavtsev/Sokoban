@@ -2,7 +2,7 @@
 
 namespace Sokoban
 {
-    class DynamicAction
+    public class DynamicAction
     {
         public bool WillTransform;
         public IDynamicCell TransformTo;

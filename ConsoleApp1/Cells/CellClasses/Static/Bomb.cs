@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Sokoban
 {
-    class Bomb : IStaticCell
+    public class Bomb : IStaticCell
     {
         public char DataFileChar { get => '='; }
 

@@ -2,7 +2,7 @@
 
 namespace Sokoban
 {
-    interface IDynamicCell : IMapCell
+    public interface IDynamicCell : IMapCell
     {
         // Represents a cell in the dynamic (moving objects) layer
         public new char DataFileChar { get; }

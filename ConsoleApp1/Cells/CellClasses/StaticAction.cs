@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Sokoban
 {
-    class StaticAction
+    public class StaticAction
     {
         public bool WillTransform;
         public IStaticCell TransformTo;

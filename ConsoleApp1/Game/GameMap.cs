@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Sokoban
 {
-    class GameMap
+    public class GameMap
     {
         public List<List<IStaticCell>> StaticLayer { get; set; }
         public List<IDynamicCell> DynamicCells { get; set; }

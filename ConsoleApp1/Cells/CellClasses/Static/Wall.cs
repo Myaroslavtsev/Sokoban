@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Sokoban
 {
-    class Wall : IStaticCell
+    public class Wall : IStaticCell
     {
         public StaticCellType CellType { get => StaticCellType.Wall; }
 

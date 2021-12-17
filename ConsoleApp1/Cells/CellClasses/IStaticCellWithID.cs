@@ -2,7 +2,7 @@
 
 namespace Sokoban
 {
-    interface IStaticCellWithID : IStaticCell
+    public interface IStaticCellWithID : IStaticCell
     {
         // Represents a cell in the static (maze construction) layer
         public new char DataFileChar { get; }

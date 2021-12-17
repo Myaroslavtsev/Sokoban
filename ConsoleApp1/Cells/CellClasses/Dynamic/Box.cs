@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Sokoban
 {
-    class Box : IDynamicCell
+    public class Box : IDynamicCell
     {
         public DynamicCellType CellType { get => DynamicCellType.Box; }
 
