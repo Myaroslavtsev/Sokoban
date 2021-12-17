@@ -3,6 +3,15 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
 
+// todo:
+// start tests
+// + text commands => interface
+// portals
+// one style of map layers
+// common interface to all cells
+// draw when changed only
+// move player - where to check boxes count ?
+
 namespace Sokoban
 {
     static class ConsoleInterface
@@ -14,6 +23,10 @@ namespace Sokoban
         private static Dictionary<StaticCellType, Dictionary<DynamicCellType, string>> cellMarks;
         private static Dictionary<StaticCellType, Dictionary<DynamicCellType, ConsoleColor>> foregroundColors;
         private static Dictionary<StaticCellType, Dictionary<DynamicCellType, ConsoleColor>> backgroundColors;
+        
+        private static bool quitRequested;
+        private static bool mapChanged;
+        private static bool footerChanged;
 
         static void Main(string[] args)
         {
@@ -22,7 +35,7 @@ namespace Sokoban
             watch.Start();
             InitDrawData();
             Draw(game);
-            while (!game.QuitRequested) 
+            while (!quitRequested) 
             {                
                 while (!Console.KeyAvailable &&
                     !(game.GameOptions.Contains(GameOption.Gravity) &&
@@ -64,7 +77,7 @@ namespace Sokoban
             switch (keyInfo.Key)
             {
                 case ConsoleKey.Enter:
-                    commandResult = game.DoCommand(commandString);                    
+                    commandResult = StartCommand(game, commandString);                    
                     commandString = "";
                     return;
                 case ConsoleKey.UpArrow:
@@ -84,6 +97,66 @@ namespace Sokoban
                     return;
             }
             commandString += keyInfo.KeyChar;
+        }
+
+        private static string StartCommand(Game game, string command)
+        {
+            var commandWords = command.ToLower().Split(' ');
+            switch (commandWords[0])
+            {
+                case "quit":
+                    quitRequested = true;
+                    return "";
+                case "help":
+                    return Files.GetHelpMessage();
+                case "about":
+                    return Files.GetAboutMessage();
+                case "levels":
+                    return Files.GetLevelList();
+                case "options":
+                    return game.MakeOptionList();
+                case "load":
+                    return commandWords.Length == 1 ?
+                        Files.LoadGame("savegame.csv", game) : Files.LoadGame(commandWords[1], game);
+                case "save":
+                    return commandWords.Length == 1 ?
+                        Files.SaveGame("savegame.csv", game) : Files.SaveGame(commandWords[1], game);
+                case "addmoves":
+                    return commandWords.Length == 1 ?
+                        "Move count not specified" : AddMoves(game, commandWords[1]);
+                case "setforce":
+                    return commandWords.Length == 1 ?
+                        "Force value not specified" : SetPlayerForce(game, commandWords[1]);
+            }
+            if (game.Playable)
+            {
+                var invertOptionResult = game.CheckAndInvertOption(commandWords[0]);
+                if (invertOptionResult != string.Empty)
+                    return invertOptionResult;
+            }
+            return "Type help for help";
+        }
+
+        private static string AddMoves(Game game, string moves)
+        {
+            if (!game.Playable)
+                return "You are not playing";
+            if (!game.GameOptions.Contains(GameOption.MoveLimit))
+                return "There is no move limit";
+            bool isParsable = int.TryParse(moves, out int moveCount);
+            if (!isParsable || !game.Map.Player.AddMoves(ref moveCount))
+                return "Incorrect move value";
+            return $"{moveCount} moves added";
+        }
+
+        private static string SetPlayerForce(Game game, string force)
+        {
+            if (!game.Playable)
+                return "You are not playing";
+            bool isParsable = int.TryParse(force, out int forceValue);
+            if (!isParsable || !game.Map.Player.SetForce(forceValue))
+                return "Incorrect force value";
+            return $"Player force set to {game.Map.Player.Force}";
         }
 
         private static void DrawMap(int top, GameMap map)

@@ -7,7 +7,6 @@ namespace Sokoban
 {
     class Game
     {
-        public bool QuitRequested { get; private set; }
         public GameMap Map { get; private set; }
         public HashSet<GameOption> GameOptions { get; private set; }
         public bool Playable { get; private set; }
@@ -57,44 +56,6 @@ namespace Sokoban
             return string.Empty;
         }
 
-        public string DoCommand(string command)
-        {
-            var commandWords = command.ToLower().Split(' ');
-            switch (commandWords[0])
-            {
-                case "quit":
-                    QuitRequested = true;
-                    return "";
-                case "help":
-                    return Files.GetHelpMessage();
-                case "about":
-                    return Files.GetAboutMessage();
-                case "levels":
-                    return Files.GetLevelList();
-                case "options":
-                    return MakeOptionList();
-                case "load":
-                    return commandWords.Length == 1 ?
-                        Files.LoadGame("savegame.csv", this) : Files.LoadGame(commandWords[1], this);
-                case "save":
-                    return commandWords.Length == 1 ?
-                        Files.SaveGame("savegame.csv", this) : Files.SaveGame(commandWords[1], this);
-                case "addmoves":
-                    return commandWords.Length == 1 ?
-                        "Move count not specified" : AddMoves(commandWords[1]);
-                case "setforce":
-                    return commandWords.Length == 1 ?
-                        "Force value not specified" : SetPlayerForce(commandWords[1]);
-            }
-            if (Playable)
-            {
-                var invertOptionResult = CheckAndInvertOption(commandWords[0]);
-                if (invertOptionResult != string.Empty)
-                    return invertOptionResult;
-            }
-            return "Type help for help";
-        }
-
         public string CheckAndInvertOption(string optionName)
         {
             if (Enum.TryParse(typeof(GameOption), optionName, true, out object option))
@@ -123,6 +84,18 @@ namespace Sokoban
                 newPos = newPos.Add(direction);
             }
             PerformCellActions();
+        }
+
+        public string MakeOptionList()
+        {
+            if (GameOptions.Count == 0)
+                return "No active options";
+            var optionList = "";
+            foreach (var option in GameOptions)
+            {
+                optionList += option.ToString() + ", ";
+            }
+            return optionList.Substring(0, Math.Max(0, optionList.Length - 2));
         }
 
         private void RealizeGravity()
@@ -227,41 +200,7 @@ namespace Sokoban
             }
             GameOptions.Add(option);
             return $"Option {option} switched on";
-        }
-
-        private string MakeOptionList()
-        {
-            if (GameOptions.Count == 0)
-                return "No active options";
-            var optionList = "";
-            foreach (var option in GameOptions)
-            {
-                optionList += option.ToString() + ", ";
-            }
-            return optionList.Substring(0, Math.Max(0, optionList.Length - 2));
-        }
-
-        private string AddMoves(string moves)
-        {            
-            if (!Playable)
-                return "You are not playing";
-            if (!GameOptions.Contains(GameOption.MoveLimit))
-                return "There is no move limit";
-            bool isParsable = int.TryParse(moves, out int moveCount);
-            if (!isParsable || !Map.Player.AddMoves(ref moveCount))
-                return "Incorrect move value";
-            return $"{moveCount} moves added";
-        }
-
-        private string SetPlayerForce(string force)
-        {
-            if (!Playable)
-                return "You are not playing";
-            bool isParsable = int.TryParse(force, out int forceValue);
-            if (!isParsable || !Map.Player.SetForce(forceValue))
-                return "Incorrect force value";
-            return $"Player force set to {Map.Player.Force}";
-        }
+        }        
 
         private void GenerateGameObjects()
         {
