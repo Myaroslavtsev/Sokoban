@@ -138,5 +138,26 @@ namespace Sokoban
                 new StaticAction(true, null)
             },
         };
+
+        [TestCaseSource("PlateTestCases")]
+        public void PlateTest(IDynamicCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, StaticAction expextedAction)
+        {
+            // arrange
+            var plate = new Plate(3);
+            var map = new GameMap();
+            map.Player = new GamePlayer(1, 1);
+            var gameMapTest = new GameMapTest();
+            map.StaticLayer = gameMapTest.EmptyStaticLayer(3, 3);
+            // act
+            var actualResult = plate.AllowsToEnter(enteringCell, map, new HashSet<GameOption>());
+            // assert
+            Assert.AreEqual(expectedResult, actualResult);
+            Assert.AreEqual(expextedAction.WillTransform, plate.CellAction.WillTransform);
+            Assert.AreEqual(expextedAction.TransformTo, plate.CellAction.TransformTo);
+            if (enteringCell is GamePlayer)
+                Assert.AreEqual(expectedKeys, (enteringCell as GamePlayer).Keys);
+        }
+
+
     }
 }

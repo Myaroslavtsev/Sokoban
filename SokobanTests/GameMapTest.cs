@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Sokoban
 {
     [TestFixture]
-    class GameMapTest
+    public class GameMapTest
     {
         [TestCase(0, 0)]
         [TestCase(1, 1)]
@@ -151,7 +151,7 @@ namespace Sokoban
             },
         };
 
-        private List<List<IStaticCell>> EmptyStaticLayer(int width, int height)
+        public List<List<IStaticCell>> EmptyStaticLayer(int width, int height)
         {
             var result = new List<List<IStaticCell>>(height);
             for (var y = 0; y < height; y++)
