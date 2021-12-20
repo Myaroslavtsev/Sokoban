@@ -7,52 +7,37 @@ namespace Sokoban
 {
     static class Files
     {
-        public static string LoadGame(string filename, Game game)
+        public static string LoadGame(string fileName, Game game)
         {
-            var fullFileName = Directory.GetCurrentDirectory() + "\\levels\\" + filename;
-            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\levels\\"))
-                return "Directory \\levels not found";
-            if (!File.Exists(fullFileName))
-                return $"File {filename} not found";
-            if (!IsValidFile(fullFileName))
-                return $"File {filename} is not a saved game";
-            var readResult = ReadGameFromFile(filename, fullFileName, game);
+            if (!File.Exists(fileName))
+                return $"File {Path.GetFileName(fileName)} not found";
+            if (!IsValidFile(fileName))
+                return $"File {Path.GetFileName(fileName)} is not a saved game";
+            var readResult = ReadGameFromFile(fileName, game);
             if (readResult == string.Empty)
             {
                 game.MapChanged = true;
-                return $"{filename} loaded";
+                return $"{Path.GetFileName(fileName)} loaded";
             }
             return readResult;
         }
 
-        public static string SaveGame(string filename, Game game)
+        public static string SaveGame(string fileName, Game game)
         {
-            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\levels\\"))
-                return "Directory \\levels not found";
-            var fullFileName = Directory.GetCurrentDirectory() + "\\levels\\" + filename;
-            FileInfo fi = null;
-            try
-            {
-                fi = new FileInfo(fullFileName);
-            }
-            catch (ArgumentException) { }
-            catch (PathTooLongException) { }
-            catch (NotSupportedException) { }
-            if (fi is null)
-                return $"File name {filename} is invalid";
-            var overwritten = File.Exists(fullFileName);
-            SaveGameToFile(fullFileName, game);
+            if (!IsValidPath(fileName, true))
+                return $"{fileName} is not a valid file path";
+            var overwritten = File.Exists(fileName);
+            SaveGameToFile(fileName, game);
             if (overwritten)
-                return $"File {filename} overwritten";
-            return $"File {filename} created";
+                return $"File {Path.GetFileName(fileName)} overwritten";
+            return $"File {Path.GetFileName(fileName)} created";
         }
 
-        public static string GetLevelList()
+        public static string GetLevelList(string currDirectory)
         {
-            var directoryPath = Directory.GetCurrentDirectory() + "\\levels\\";
-            if (!Directory.Exists(directoryPath))
-                return "Directory \\levels not found";
-            string[] files = Directory.GetFiles(directoryPath, "*.csv");
+            if (!Directory.Exists(currDirectory))
+                return "Directory not found";
+            string[] files = Directory.GetFiles(currDirectory, "*.csv");
             var validFileCount = 0;
             var result = "";
             foreach(var file in files)
@@ -64,7 +49,7 @@ namespace Sokoban
                 }
             }
             if (validFileCount > 0)
-                return $"{validFileCount} valid game files in \\levels directory:\r\n" + result;
+                return $"{validFileCount} valid game files in current directory:\r\n" + result;
             return "No valid saved game files found";
         }
 
@@ -79,6 +64,8 @@ namespace Sokoban
                 "   load filename.csv - load game level\r\n" +
                 "   save - save current game\r\n" +
                 "   save filename.csv - save game to file\r\n" +
+                "   directory - levels directory name\r\n" +
+                "   cd dirname - change directory\r\n" +
                 "   options - print active option list\r\n" +
                 "     gravity - turn gravity on/off\r\n" +
                 "     movelimit - turn level move limit on/off\r\n" +
@@ -112,23 +99,23 @@ namespace Sokoban
             sw.Close();
         }
 
-        private static string ReadGameFromFile(string filename, string fullFileName, Game game)
+        private static string ReadGameFromFile(string fileName, Game game)
         {
             game.Stop();
-            StreamReader sr = new StreamReader(fullFileName);
+            StreamReader sr = new StreamReader(fileName);
             var line = sr.ReadLine();
             if (!line.ToLower().StartsWith("sokoban 2021"))
-                return FinishFileRead(sr, filename);
+                return FinishFileRead(sr, fileName);
             if (!ReadGameOptions(sr, game))
-                return FinishFileRead(sr, filename);
+                return FinishFileRead(sr, fileName);
             if (!ReadStaticCellMap(sr, game.Map))
-                return FinishFileRead(sr, filename);
+                return FinishFileRead(sr, fileName);
             if (!ReadUniqueCellList(sr, game.Map))
-                return FinishFileRead(sr, filename);
+                return FinishFileRead(sr, fileName);
             if (!ReadDynamicObjectList(sr, game.Map))
-                return FinishFileRead(sr, filename);
+                return FinishFileRead(sr, fileName);
             if (!ReadPlayerData(sr, game.Map))
-                return FinishFileRead(sr, filename);
+                return FinishFileRead(sr, fileName);
             sr.Close();
             game.Map.GenerateDynamicLayer();
             game.Map.UpdateDynamicLayer();
@@ -342,6 +329,29 @@ namespace Sokoban
                 firstLine.ToLower().StartsWith("sokoban 2021"))
                 return true;
             return false;
+        }
+
+        private static bool IsValidPath(string path, bool allowRelativePaths = false)
+        {
+            bool isValid = true;
+            try
+            {
+                string fullPath = Path.GetFullPath(path);
+                if (allowRelativePaths)
+                {
+                    isValid = Path.IsPathRooted(path);
+                }
+                else
+                {
+                    string root = Path.GetPathRoot(path);
+                    isValid = string.IsNullOrEmpty(root.Trim(new char[] { '\\', '/' })) == false;
+                }
+            }
+            catch (Exception ex)
+            {
+                isValid = false;
+            }
+            return isValid;
         }
 
         private static IStaticCell CharToStaticCell(char cellCode, int id)

@@ -47,11 +47,13 @@ namespace Sokoban
             if (PlayerWin())
             {
                 Playable = false;
+                MapChanged = true;
                 return "Player win!";
             }
             if (MoveLimitReached())
             {
                 Playable = false;
+                MapChanged = true;
                 return "No more moves";
             }
             return string.Empty;

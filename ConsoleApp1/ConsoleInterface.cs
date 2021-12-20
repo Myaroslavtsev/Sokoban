@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 
 // todo:
 // start tests
@@ -26,10 +27,12 @@ namespace Sokoban
         
         private static bool quitRequested;
         private static bool footerChanged = true;
+        private static string currDirectory;
 
         static void Main(string[] args)
         {
-            Game game = new Game("savegame.csv");
+            currDirectory = Directory.GetCurrentDirectory() + "\\levels\\";
+            Game game = new Game(currDirectory + "savegame.csv");
             var watch = new Stopwatch();
             watch.Start();
             InitDrawData();
@@ -54,9 +57,8 @@ namespace Sokoban
             {
                 WriteHeader(game); 
                 DrawMap(5, game.Map);
-            }
-            if (footerChanged) 
                 WriteFooter(game);
+            }                
             game.MapChanged = false;
             footerChanged = false;
         }
@@ -120,15 +122,19 @@ namespace Sokoban
                 case "about":
                     return Files.GetAboutMessage();
                 case "levels":
-                    return Files.GetLevelList();
+                    return Files.GetLevelList(currDirectory);
                 case "options":
                     return game.MakeOptionList();
+                case "directory":
+                    return currDirectory;
+                case "cd":
+                    return ChangeCurrentDirectory(commandWords);
                 case "load":
                     return commandWords.Length == 1 ?
-                        Files.LoadGame("savegame.csv", game) : Files.LoadGame(commandWords[1], game);
+                        Files.LoadGame(currDirectory + "savegame.csv", game) : Files.LoadGame(currDirectory + commandWords[1], game);
                 case "save":
                     return commandWords.Length == 1 ?
-                        Files.SaveGame("savegame.csv", game) : Files.SaveGame(commandWords[1], game);
+                        Files.SaveGame(currDirectory + "savegame.csv", game) : Files.SaveGame(currDirectory + commandWords[1], game);
                 case "addmoves":
                     return commandWords.Length == 1 ?
                         "Move count not specified" : AddMoves(game, commandWords[1]);
@@ -143,6 +149,18 @@ namespace Sokoban
                     return invertOptionResult;
             }
             return "Type help for help";
+        }
+
+        private static string ChangeCurrentDirectory(string[] commandWords)
+        {
+            if (commandWords.Length < 2)
+                return "Directory name not specified";
+            if (commandWords[1][commandWords[1].Length - 1] != '\\')
+                commandWords[1] += '\\';
+            if (!Directory.Exists(commandWords[1]))
+                return "Directory name incorrect";
+            currDirectory = commandWords[1];
+            return "Saved games path changed";
         }
 
         private static string AddMoves(Game game, string moves)
