@@ -28,13 +28,16 @@ namespace Sokoban
         }
 
         [TestCaseSource("UpdateDynLayerSource")]
-        public void UpdateDynamicLayerTest(List<List<IStaticCell>> staticLayer, 
+        public void UpdateDynamicLayerTest(List<List<IStaticCell>> staticLayer,
+            List<IDynamicCell> dynamicCells, GamePlayer player,
             List<List<IDynamicCell>> expectedDynamicLayer)
         {
             // arrange
             var map = new GameMap();                        
             map.StaticLayer = staticLayer;
             map.GenerateDynamicLayer();
+            map.DynamicCells = dynamicCells;
+            map.Player = player;
             // act
             map.UpdateDynamicLayer();
             // assert
@@ -43,7 +46,10 @@ namespace Sokoban
             {
                 Assert.AreEqual(expectedDynamicLayer[y].Count, map.DynamicLayer[y].Count);
                 for (var x = 0; x < map.Width; x++)
-                    Assert.IsInstanceOf(expectedDynamicLayer[y][x].GetType(), map.DynamicLayer[y][x]);
+                    if (expectedDynamicLayer[y][x] is null)
+                        Assert.That(map.DynamicLayer[y][x] is null);
+                    else
+                        Assert.IsInstanceOf(expectedDynamicLayer[y][x].GetType(), map.DynamicLayer[y][x]);
             }
         }
 
@@ -58,7 +64,14 @@ namespace Sokoban
                     new List<IStaticCell> { new Wall(),  new Cage(), null,       new Wall(), new Bomb(), new Wall() },
                     new List<IStaticCell> { new Wall(),  new Cage(), null,       null,       new Key(5), new Door(3) },
                     new List<IStaticCell> { new Wall(),  new Wall(), new Wall(), new Wall(), new Wall(), new Wall() },
-                },            
+                },
+                new List<IDynamicCell>
+                {
+                    new Box(1, 2),
+                    new Box(2, 3),
+                    new Box(3, 3)                    
+                },
+                new GamePlayer(3, 1),
                 new List<List<IDynamicCell>>
                 {
                     new List<IDynamicCell> { null,      null,       null,       null,       null,       null },
@@ -99,8 +112,11 @@ namespace Sokoban
             map.DynamicCells = dynamicCells;
             map.Player = player;
             map.UpdateDynamicLayer();
+            var newPos = new Point(
+                player.Position.X + direction.X,
+                player.Position.Y + direction.Y);
             // act
-            var actualResult = map.MovableBoxes(map.Player.Position, direction, new HashSet<GameOption>());
+            var actualResult = map.MovableBoxes(newPos, direction, new HashSet<GameOption>());
             // assert
             Assert.AreEqual(expectedResult, actualResult);
         }

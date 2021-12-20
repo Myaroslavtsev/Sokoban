@@ -82,7 +82,7 @@ namespace Sokoban
                 0,
                 new StaticAction(true, null)
             },
-            new object[] // player enters the door => true, bomb disappears
+            new object[] // player enters the door => true, bomb disappears, player gets bomb
             {
                 new Box(1, 1),
                 1,
@@ -93,7 +93,7 @@ namespace Sokoban
         };
 
         [TestCaseSource("KeyTestCases")]
-        public void KeyTest(IDynamicCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, StaticAction expextedAction)
+        public void KeyTest(IDynamicCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, StaticAction expectedAction)
         {
             // arrange
             var key = new Key(3);
@@ -105,15 +105,15 @@ namespace Sokoban
             var actualResult = key.AllowsToEnter(enteringCell, map, new HashSet<GameOption>());
             // assert
             Assert.AreEqual(expectedResult, actualResult);
-            Assert.AreEqual(expextedAction.WillTransform, key.CellAction.WillTransform);
-            Assert.AreEqual(expextedAction.TransformTo, key.CellAction.TransformTo);
+            Assert.AreEqual(expectedAction.WillTransform, key.CellAction.WillTransform);
+            Assert.AreEqual(expectedAction.TransformTo, key.CellAction.TransformTo);
             if (enteringCell is GamePlayer)
                 Assert.AreEqual(expectedKeys, (enteringCell as GamePlayer).Keys);
         }
 
         static readonly object[] KeyTestCases =
         {
-            new object[] // not player enters the door => true, bomb disappears
+            new object[] // not player moves over key => true, key disappears
             {
                 new Box(1, 1),
                 new List<int> { },
@@ -121,17 +121,17 @@ namespace Sokoban
                 new List<int> { },
                 new StaticAction(true, null)
             },
-            new object[] // player enters the door => true, bomb disappears
+            new object[] // player enters the door => true, key disappears
             {
-                new Box(1, 1),
+                new GamePlayer(1, 1),
                 new List<int> { },
                 true,
                 new List<int> { 3 },
                 new StaticAction(true, null)
             },
-            new object[] // player enters the door => true, bomb disappears
+            new object[] // player enters the door => true, key disappears
             {
-                new Box(1, 1),
+                new GamePlayer(1, 1),
                 new List<int> { 1 },
                 true,
                 new List<int> { 1, 3 },
@@ -140,7 +140,7 @@ namespace Sokoban
         };
 
         [TestCaseSource("PlateTestCases")]
-        public void PlateTest(IDynamicCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, StaticAction expextedAction)
+        public void PlateTest(IDynamicCell enteringCell, int doorID, bool expectedResult, StaticAction expectedPlateAction, StaticAction expectedDoorAction)
         {
             // arrange
             var plate = new Plate(3);
@@ -148,16 +148,112 @@ namespace Sokoban
             map.Player = new GamePlayer(1, 1);
             var gameMapTest = new GameMapTest();
             map.StaticLayer = gameMapTest.EmptyStaticLayer(3, 3);
+            map.StaticLayer[2][1] = new Door(doorID);
             // act
             var actualResult = plate.AllowsToEnter(enteringCell, map, new HashSet<GameOption>());
             // assert
             Assert.AreEqual(expectedResult, actualResult);
-            Assert.AreEqual(expextedAction.WillTransform, plate.CellAction.WillTransform);
-            Assert.AreEqual(expextedAction.TransformTo, plate.CellAction.TransformTo);
-            if (enteringCell is GamePlayer)
-                Assert.AreEqual(expectedKeys, (enteringCell as GamePlayer).Keys);
+            if (expectedPlateAction is null)
+                Assert.That(plate.CellAction is null);
+            else
+            {
+                Assert.AreEqual(expectedPlateAction.WillTransform, plate.CellAction.WillTransform);
+                Assert.AreEqual(expectedPlateAction.TransformTo, plate.CellAction.TransformTo);
+            }
+            if (expectedDoorAction is null)
+                Assert.That(map.StaticLayer[2][1].CellAction is null);
+            else
+            {
+                Assert.AreEqual(expectedDoorAction.WillTransform, map.StaticLayer[2][1].CellAction.WillTransform);
+                Assert.AreEqual(expectedDoorAction.TransformTo, map.StaticLayer[2][1].CellAction.TransformTo);
+            }
         }
 
+        static readonly object[] PlateTestCases =
+        {
+            new object[] // box enters, IDs not equal => nothing transforms
+            {
+                new Box(1, 1),
+                1,
+                true,
+                null,
+                null
+            },
+            new object[] // box enters, IDs are equal => door transforms
+            {
+                new Box(1, 1),
+                3,
+                true,
+                null,
+                new StaticAction(true, null)
+            },
+            new object[] // player enters, IDs not equal => nothing transforms
+            {
+                new GamePlayer(1, 1),
+                1,
+                true,
+                null,
+                null
+            },
+            new object[] // player enters, IDs are equal => door transforms
+            {
+                new GamePlayer(1, 1),
+                3,
+                true,
+                null,
+                new StaticAction(true, null)
+            }
+        };
 
+        [TestCaseSource("WallTestCases")]
+        public void WallTest(IDynamicCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, StaticAction expectedAction)
+        {
+            // arrange
+            var wall = new Wall();
+            var map = new GameMap();
+            if (enteringCell is GamePlayer)
+                (enteringCell as GamePlayer).BombCount = initBombCount;
+            // act
+            var actualResult = wall.AllowsToEnter(enteringCell, map, new HashSet<GameOption>());
+            // assert
+            Assert.AreEqual(expectedResult, actualResult);
+            if (enteringCell is GamePlayer)
+                Assert.AreEqual(expectedBombCount, (enteringCell as GamePlayer).BombCount);
+            if (expectedAction is null)
+                Assert.That(wall.CellAction is null);
+            else
+            {
+                Assert.AreEqual(expectedAction.WillTransform, wall.CellAction.WillTransform);
+                Assert.AreEqual(expectedAction.TransformTo, wall.CellAction.TransformTo);
+            }
+        }
+
+        static readonly object[] WallTestCases =
+        {
+            new object[] // box enters => false
+            {
+                new Box(1, 1),
+                0,
+                false,
+                0,
+                null
+            },
+            new object[] // player without bombs enters => false
+            {
+                new GamePlayer(1, 1),
+                0,
+                false,
+                0,
+                null
+            },
+            new object[] // player with bomb enters => true, wall disappears
+            {
+                new GamePlayer(1, 1),
+                3,
+                true,
+                2,
+                new StaticAction(true, null)
+            }
+        };
     }
 }
