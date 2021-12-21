@@ -3,19 +3,16 @@ using System.Drawing;
 
 namespace Sokoban
 {
-    public class GamePlayer : IDynamicCell
+    public class GamePlayer : IMapCell
     {
         private const int moveLimit = 99999;
         private const int forceLimit = 100;
 
-        public char DataFileChar { get => '@'; }
+        public char DataFileChar => '@'; 
 
-        public DynamicCellType CellType { get => DynamicCellType.Player; }
-
+        public CellTypes CellType => CellTypes.Player;
         public Point Position { get; set; }
-
-        public DynamicAction CellAction { get; set; }
-
+        public MapCellAction CellAction { get; set; }
         public int MaxMoves { get; set; }
 
         public int Moves { get; set; }
@@ -62,5 +59,7 @@ namespace Sokoban
             }
             return false;
         }
+
+        public bool AllowsToEnter(IMapCell cell, GameMap map, HashSet<GameOption> options) => false;
     }
 }

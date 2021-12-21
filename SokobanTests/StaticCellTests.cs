@@ -54,7 +54,7 @@ namespace Sokoban
         };
 
         [TestCaseSource("BombTestCases")]
-        public void BombTest(IDynamicCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, StaticAction expextedAction)
+        public void BombTest(IDynamicCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, MapCellAction expextedAction)
         {
             // arrange
             var bomb = new Bomb();
@@ -80,7 +80,7 @@ namespace Sokoban
                 0,
                 true,
                 0,
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             },
             new object[] // player enters the door => true, bomb disappears, player gets bomb
             {
@@ -88,12 +88,12 @@ namespace Sokoban
                 1,
                 true,
                 2,
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             },
         };
 
         [TestCaseSource("KeyTestCases")]
-        public void KeyTest(IDynamicCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, StaticAction expectedAction)
+        public void KeyTest(IDynamicCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, MapCellAction expectedAction)
         {
             // arrange
             var key = new Key(3);
@@ -119,7 +119,7 @@ namespace Sokoban
                 new List<int> { },
                 true,
                 new List<int> { },
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             },
             new object[] // player enters the door => true, key disappears
             {
@@ -127,7 +127,7 @@ namespace Sokoban
                 new List<int> { },
                 true,
                 new List<int> { 3 },
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             },
             new object[] // player enters the door => true, key disappears
             {
@@ -135,12 +135,12 @@ namespace Sokoban
                 new List<int> { 1 },
                 true,
                 new List<int> { 1, 3 },
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             },
         };
 
         [TestCaseSource("PlateTestCases")]
-        public void PlateTest(IDynamicCell enteringCell, int doorID, bool expectedResult, StaticAction expectedPlateAction, StaticAction expectedDoorAction)
+        public void PlateTest(IDynamicCell enteringCell, int doorID, bool expectedResult, MapCellAction expectedPlateAction, MapCellAction expectedDoorAction)
         {
             // arrange
             var plate = new Plate(3);
@@ -185,7 +185,7 @@ namespace Sokoban
                 3,
                 true,
                 null,
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             },
             new object[] // player enters, IDs not equal => nothing transforms
             {
@@ -201,12 +201,12 @@ namespace Sokoban
                 3,
                 true,
                 null,
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             }
         };
 
         [TestCaseSource("WallTestCases")]
-        public void WallTest(IDynamicCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, StaticAction expectedAction)
+        public void WallTest(IDynamicCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, MapCellAction expectedAction)
         {
             // arrange
             var wall = new Wall();
@@ -252,7 +252,7 @@ namespace Sokoban
                 3,
                 true,
                 2,
-                new StaticAction(true, null)
+                new MapCellAction(true, null)
             }
         };
     }

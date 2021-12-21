@@ -75,15 +75,15 @@ namespace Sokoban
             var newPos = Map.Player.Position.Add(direction);
             var boxCount = Map.MovableBoxes(newPos, direction, GameOptions);
             if (!Map.PositionPossible(newPos) || boxCount < 0)
-                return;
-            if ((Map.StaticLayer[newPos.Y][newPos.X] is null) ||
-                Map.StaticLayer[newPos.Y][newPos.X].AllowsToEnter(Map.Player, Map, GameOptions))
+                return;            
+            if ((Map.StaticLayer.GetByPosition(newPos) is null) ||
+                Map.StaticLayer.GetByPosition(newPos).AllowsToEnter(Map.Player, Map, GameOptions))
             {
-                Map.Player.CellAction = new DynamicAction(direction, false, null);
+                Map.Player.CellAction = new MapCellAction(direction, false, null);
             }
             for (var i = 0; i < boxCount; i++)
             {
-                Map.DynamicLayer[newPos.Y][newPos.X].CellAction = new DynamicAction(direction, false, null);
+                Map.DynamicLayer.GetByPosition(newPos).CellAction = new MapCellAction(direction, false, null);
                 newPos = newPos.Add(direction);
             }
             PerformCellActions();
@@ -108,11 +108,11 @@ namespace Sokoban
             {
                 for (var x = 0; x < Map.Width; x++)
                 {
-                    if (Map.DynamicLayer[y][x] is Box)
+                    if (Map.DynamicLayer.GetByPosition(x, y) is Box)
                     {
-                        if ((Map.DynamicLayer[y + 1][x] is null) && ((Map.StaticLayer[y + 1][x] is null) ||
-                            Map.StaticLayer[y + 1][x].AllowsToEnter(Map.DynamicLayer[y][x] as Box, Map, GameOptions)))
-                            Map.DynamicLayer[y][x].CellAction = new DynamicAction(down, false, null);
+                        if ((Map.DynamicLayer.GetByPosition(x, y+1) is null) && ((Map.StaticLayer.GetByPosition(x, y+1) is null) ||
+                            Map.StaticLayer.GetByPosition(x, y+1).AllowsToEnter(Map.DynamicLayer.GetByPosition(x, y) as Box, Map, GameOptions)))
+                            Map.DynamicLayer.GetByPosition(x, y).CellAction = new MapCellAction(down, false, null);
                     }
                 }
                 PerformCellActions();
@@ -121,13 +121,14 @@ namespace Sokoban
 
         private void PerformCellActions()
         {            
-            PerformStaticCellActions();   
-            PerformDynamicCellActions();
-            PerformPlayerActions(Map.Player);
-            Map.UpdateDynamicLayer();
+            //PerformStaticCellActions();   
+            //PerformDynamicCellActions();
+            //PerformPlayerActions(Map.Player);
+            //Map.UpdateDynamicLayer();
+            MapChanged = Map.StaticLayer.DoCellActions() || Map.DynamicLayer.DoCellActions();
         }
 
-        private void PerformStaticCellActions()
+        /*private void PerformStaticCellActions()
         {
             for (var y = 0; y < Map.Height; y++)
                 for (var x = 0; x < Map.Width; x++)
@@ -181,13 +182,13 @@ namespace Sokoban
                 }
                 player.CellAction = null;
             }
-        }
+        }*/
 
         private bool PlayerWin()
         {
             var finished = true;
-            foreach (var cell in Map.DynamicCells)
-                if (cell is Box && !(Map.StaticLayer[cell.Position.Y][cell.Position.X] is Cage))
+            foreach (var cell in Map.DynamicLayer.Cells)
+                if (cell is Box && !(Map.StaticLayer.GetByPosition(cell.Position) is Cage))
                 {
                     finished = false;
                     break;

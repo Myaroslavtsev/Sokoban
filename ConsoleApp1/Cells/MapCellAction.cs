@@ -2,13 +2,13 @@
 
 namespace Sokoban
 {
-    public class DynamicAction
+    public class MapCellAction
     {
         public bool WillTransform;
-        public IDynamicCell TransformTo;
+        public IMapCell TransformTo;
         public Point Move;
 
-        public DynamicAction(Point move, bool willTransform, IDynamicCell transformTo)
+        public MapCellAction(Point move, bool willTransform, IMapCell transformTo)
         {
             Move = move;
             WillTransform = willTransform;

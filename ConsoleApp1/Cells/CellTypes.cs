@@ -1,6 +1,6 @@
 ﻿namespace Sokoban
 {
-    public enum StaticCellType
+    public enum CellTypes
     {           // symbols in data file:
         NoCell, // space
         Wall,   // #
@@ -8,12 +8,7 @@
         Plate,  // _
         Key,    // +
         Door,   // |
-        Bomb    // =
-    }
-
-    public enum DynamicCellType
-    {
-        NoCell, // space
+        Bomb,    // =
         Box,    // %
         Player  // @
     }

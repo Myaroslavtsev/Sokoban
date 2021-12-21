@@ -117,8 +117,8 @@ namespace Sokoban
             if (!ReadPlayerData(sr, game.Map))
                 return FinishFileRead(sr, fileName);
             sr.Close();
-            game.Map.GenerateDynamicLayer();
-            game.Map.UpdateDynamicLayer();
+            //game.Map.GenerateDynamicLayer();
+            //game.Map.UpdateDynamicLayer();
             return game.Start();
         }
 
@@ -154,18 +154,16 @@ namespace Sokoban
             if (!int.TryParse(cellData[2], out int height))
                 return false;
             // body
-            map.StaticLayer = new List<List<IStaticCell>>();
+            map.StaticLayer = new MapLayer(width, height);
             for (var y = 0; y < height; y++)
             {
-                map.StaticLayer.Add(new List<IStaticCell>());
                 cellData = sr.ReadLine().ToLower().Split(';');
                 if (cellData.Length < 1)
                     return false;
                 for (var x = 0; x < width; x++)
                     if (x < cellData[0].Length)
-                        map.StaticLayer[y].Add(CharToStaticCell(cellData[0][x], 0));
-                    else
-                        map.StaticLayer[y].Add(null);
+                        if (cellData[0][x] == '*' || cellData[0][x] == '#' || cellData[0][x] == '=')
+                            map.StaticLayer.AddCell(CharToMapCell(cellData[0][x], x, y, 0));                    
             }                
             return true;
         }        
@@ -173,10 +171,10 @@ namespace Sokoban
         private static string WriteStaticCellMap(GameMap map)
         {
             var result = $"StaticCells;{map.Width};{map.Height}\r\n";
-            for (var y = 0; y < map.Height; y++)
+            /*for (var y = 0; y < map.Height; y++)
             {
                 for (var x = 0; x < map.Width; x++)
-                    if ((map.StaticLayer[y][x] is IStaticCell) &&
+                    if ((map.StaticLayer.GetByPosition(x, y) is IStaticCell) &&
                         !(map.StaticLayer[y][x] is IStaticCellWithID))
                         result += map.StaticLayer[y][x].DataFileChar;
                     else                    
@@ -185,7 +183,7 @@ namespace Sokoban
                         else
                             result += " ";                    
                 result += "\r\n";                
-            }
+            }*/
             return result;
         }
 
@@ -209,7 +207,7 @@ namespace Sokoban
                     return false;
                 if (!int.TryParse(cellData[3], out int id))
                     return false;
-                map.StaticLayer[y][x] = CharToStaticCell(cellData[0][0], id);
+                map.StaticLayer.AddCell(CharToMapCell(cellData[0][0], x, y, id));
             }
             return true;
         }
@@ -218,21 +216,21 @@ namespace Sokoban
         {
             var result = "";
             int count = 0;
-            for (var y = 0; y < map.Height; y++)
+            /*for (var y = 0; y < map.Height; y++)
                 for (var x = 0; x < map.Width; x++)
                     if (map.StaticLayer[y][x] is IStaticCellWithID)
                     {
                         result += $"{map.StaticLayer[y][x].DataFileChar};{x};{y};" +
                             $"{(map.StaticLayer[y][x] as IStaticCellWithID).ID}\r\n";
                         count++;
-                    }
+                    }*/
             result = $"UniqueCells;{count}\r\n" + result;
             return result;
         }
 
         private static bool ReadDynamicObjectList(StreamReader sr, GameMap map)
         {
-            map.DynamicCells = new List<IDynamicCell>();
+            map.DynamicLayer = new MapLayer(map.StaticLayer.Width, map.StaticLayer.Height);
             // header
             string[] cellData = sr.ReadLine().ToLower().Split(';');
             if (cellData.Length < 2 || cellData[0] != "dynamiccells")
@@ -249,7 +247,7 @@ namespace Sokoban
                     return false;
                 if (!int.TryParse(cellData[2], out int y))
                     return false;
-                map.DynamicCells.Add(CharToDynamicCell(cellData[0][0], x, y));
+                map.DynamicLayer.AddCell(CharToMapCell(cellData[0][0], x, y, 0));
             }
             return true;
         }
@@ -271,14 +269,15 @@ namespace Sokoban
                 return false;
             if (!int.TryParse(playerData[6], out int bombCount))
                 return false;
-            map.Player = new GamePlayer(x, y)
-            {
-                MaxMoves = maxMoves,
-                Moves = moves,
-                Force = force,
-                BombCount = bombCount,
-                Keys = new List<int>()
-            };
+            map.DynamicLayer.AddCell(new GamePlayer(x, y)
+                {
+                    MaxMoves = maxMoves,
+                    Moves = moves,
+                    Force = force,
+                    BombCount = bombCount,
+                    Keys = new List<int>()
+                }
+            );
             string[] keyData = sr.ReadLine().ToLower().Split(';');
             if (keyData.Length < 2 || keyData[0] != "keys")
                 return false;
@@ -295,8 +294,8 @@ namespace Sokoban
 
         private static string WriteDynamicObjectList(GameMap map)
         {
-            var result = $"DynamicCells;{map.DynamicCells.Count}\r\n";
-            foreach (var cell in map.DynamicCells)
+            var result = $"DynamicCells;{map.DynamicLayer.Cells.Count}\r\n";
+            foreach (var cell in map.DynamicLayer.Cells)
             {
                 if (cell is Box)
                     result += $"{cell.DataFileChar};{cell.Position.X};{cell.Position.Y}\r\n";
@@ -354,26 +353,18 @@ namespace Sokoban
             return isValid;
         }
 
-        private static IStaticCell CharToStaticCell(char cellCode, int id)
+        private static IMapCell CharToMapCell(char cellCode, int x, int y, int id)
         {
             return cellCode switch
             {
-                '#' => new Wall(),
-                '*' => new Cage(),
-                '=' => new Bomb(),
-                '_' => new Plate(id),
-                '+' => new Key(id),
-                '|' => new Door(id),
-                _   => null,
-            };
-        }
-
-        private static IDynamicCell CharToDynamicCell(char cellCode, int x, int y)
-        {
-            return cellCode switch
-            {
+                '_' => new Plate(x, y, id),
+                '+' => new Key(x, y, id),
+                '|' => new Door(x, y, id),
+                '#' => new Wall(x, y),
+                '*' => new Cage(x, y),
+                '=' => new Bomb(x, y),
                 '%' => new Box(x, y),
-                _   => null,
+                _ => null,
             };
         }
     }

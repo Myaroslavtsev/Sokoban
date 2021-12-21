@@ -22,9 +22,9 @@ namespace Sokoban
         const int cellMarkWidth = 1;
         private static string commandString;
         private static string commandResult;
-        private static Dictionary<StaticCellType, Dictionary<DynamicCellType, string>> cellMarks;
-        private static Dictionary<StaticCellType, Dictionary<DynamicCellType, ConsoleColor>> foregroundColors;
-        private static Dictionary<StaticCellType, Dictionary<DynamicCellType, ConsoleColor>> backgroundColors;
+        private static Dictionary<CellTypes, Dictionary<CellTypes, string>> cellMarks;
+        private static Dictionary<CellTypes, Dictionary<CellTypes, ConsoleColor>> foregroundColors;
+        private static Dictionary<CellTypes, Dictionary<CellTypes, ConsoleColor>> backgroundColors;
         
         private static bool quitRequested;
         private static bool footerChanged = true;
@@ -194,11 +194,15 @@ namespace Sokoban
             for (var y = 0; y < height; y++)
                 for(var x = 0; x < width; x++)
                 {                    
-                    var staticCell = map.StaticLayer[y][x] is null ? StaticCellType.NoCell : map.StaticLayer[y][x].CellType;
-                    var dynamicCell = map.DynamicLayer[y][x] is null ? DynamicCellType.NoCell : map.DynamicLayer[y][x].CellType;
-                    var foreColor = foregroundColors[staticCell][dynamicCell];
-                    var backColor = backgroundColors[staticCell][dynamicCell];
-                    var cellMark = cellMarks[staticCell][dynamicCell];
+                    var staticCell = map.StaticLayer.GetByPosition(x, y);
+                    var dynamicCell = map.DynamicLayer.GetByPosition(x, y);
+                    var staticCellType = staticCell is null ?
+                        CellTypes.NoCell : staticCell.CellType;
+                    var dynamicCellType = dynamicCell is null ?
+                        CellTypes.NoCell : dynamicCell.CellType;
+                    var foreColor = foregroundColors[staticCellType][dynamicCellType];
+                    var backColor = backgroundColors[staticCellType][dynamicCellType];
+                    var cellMark = cellMarks[staticCellType][dynamicCellType];
                     ConsoleWrite(foreColor, backColor, x * cellMarkWidth + left, y + top, cellMark);
                 }
             Console.ForegroundColor = ConsoleColor.Gray;
@@ -249,115 +253,115 @@ namespace Sokoban
         {
             commandString = "";
             commandResult = "Type help for help";
-            cellMarks = new Dictionary<StaticCellType, Dictionary<DynamicCellType, string>> { 
-                { StaticCellType.NoCell, new Dictionary<DynamicCellType, string> { 
-                    { DynamicCellType.NoCell, " " }, 
-                    { DynamicCellType.Box, "X" }, 
-                    { DynamicCellType.Player, "P" } } 
+            cellMarks = new Dictionary<CellTypes, Dictionary<CellTypes, string>> { 
+                { CellTypes.NoCell, new Dictionary<CellTypes, string> { 
+                    { CellTypes.NoCell, " " }, 
+                    { CellTypes.Box, "X" }, 
+                    { CellTypes.Player, "P" } } 
                 },
-                { StaticCellType.Wall, new Dictionary<DynamicCellType, string> {
-                    { DynamicCellType.NoCell, " " },
-                    { DynamicCellType.Box, "X" },
-                    { DynamicCellType.Player, "P" } }
+                { CellTypes.Wall, new Dictionary<CellTypes, string> {
+                    { CellTypes.NoCell, " " },
+                    { CellTypes.Box, "X" },
+                    { CellTypes.Player, "P" } }
                 },
-                { StaticCellType.Cage, new Dictionary<DynamicCellType, string> {
-                    { DynamicCellType.NoCell, "*" },
-                    { DynamicCellType.Box, "V" },
-                    { DynamicCellType.Player, "P" } }
+                { CellTypes.Cage, new Dictionary<CellTypes, string> {
+                    { CellTypes.NoCell, "*" },
+                    { CellTypes.Box, "V" },
+                    { CellTypes.Player, "P" } }
                 },
-                { StaticCellType.Plate, new Dictionary<DynamicCellType, string> {
-                    { DynamicCellType.NoCell, "_" },
-                    { DynamicCellType.Box, "X" },
-                    { DynamicCellType.Player, "P" } }
+                { CellTypes.Plate, new Dictionary<CellTypes, string> {
+                    { CellTypes.NoCell, "_" },
+                    { CellTypes.Box, "X" },
+                    { CellTypes.Player, "P" } }
                 },
-                { StaticCellType.Key, new Dictionary<DynamicCellType, string> {
-                    { DynamicCellType.NoCell, "k" },
-                    { DynamicCellType.Box, "X" },
-                    { DynamicCellType.Player, "P" } }
+                { CellTypes.Key, new Dictionary<CellTypes, string> {
+                    { CellTypes.NoCell, "k" },
+                    { CellTypes.Box, "X" },
+                    { CellTypes.Player, "P" } }
                 },
-                { StaticCellType.Door, new Dictionary<DynamicCellType, string> {
-                    { DynamicCellType.NoCell, " " },
-                    { DynamicCellType.Box, "X" },
-                    { DynamicCellType.Player, "P" } }
+                { CellTypes.Door, new Dictionary<CellTypes, string> {
+                    { CellTypes.NoCell, " " },
+                    { CellTypes.Box, "X" },
+                    { CellTypes.Player, "P" } }
                 },
-                { StaticCellType.Bomb, new Dictionary<DynamicCellType, string> {
-                    { DynamicCellType.NoCell, "b" },
-                    { DynamicCellType.Box, "X" },
-                    { DynamicCellType.Player, "P" } }
-                },
-            };
-            foregroundColors = new Dictionary<StaticCellType, Dictionary<DynamicCellType, ConsoleColor>> {
-                { StaticCellType.NoCell, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.DarkYellow },
-                    { DynamicCellType.Player, ConsoleColor.Red } }
-                },
-                { StaticCellType.Wall, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.DarkYellow },
-                    { DynamicCellType.Player, ConsoleColor.Red } }
-                },
-                { StaticCellType.Cage, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.DarkGreen },
-                    { DynamicCellType.Box, ConsoleColor.Green },
-                    { DynamicCellType.Player, ConsoleColor.Red } }
-                },
-                { StaticCellType.Plate, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Gray },
-                    { DynamicCellType.Box, ConsoleColor.DarkYellow },
-                    { DynamicCellType.Player, ConsoleColor.Red } }
-                },
-                { StaticCellType.Key, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Gray },
-                    { DynamicCellType.Box, ConsoleColor.DarkYellow },
-                    { DynamicCellType.Player, ConsoleColor.Red } }
-                },
-                { StaticCellType.Door, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.DarkYellow },
-                    { DynamicCellType.Player, ConsoleColor.Red } }
-                },
-                { StaticCellType.Bomb, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.DarkRed },
-                    { DynamicCellType.Box, ConsoleColor.DarkYellow },
-                    { DynamicCellType.Player, ConsoleColor.Red } }
+                { CellTypes.Bomb, new Dictionary<CellTypes, string> {
+                    { CellTypes.NoCell, "b" },
+                    { CellTypes.Box, "X" },
+                    { CellTypes.Player, "P" } }
                 },
             };
-            backgroundColors = new Dictionary<StaticCellType, Dictionary<DynamicCellType, ConsoleColor>> {
-                { StaticCellType.NoCell, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.Black },
-                    { DynamicCellType.Player, ConsoleColor.Black } }
+            foregroundColors = new Dictionary<CellTypes, Dictionary<CellTypes, ConsoleColor>> {
+                { CellTypes.NoCell, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.DarkYellow },
+                    { CellTypes.Player, ConsoleColor.Red } }
                 },
-                { StaticCellType.Wall, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.DarkRed },
-                    { DynamicCellType.Box, ConsoleColor.DarkRed },
-                    { DynamicCellType.Player, ConsoleColor.DarkRed } }
+                { CellTypes.Wall, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.DarkYellow },
+                    { CellTypes.Player, ConsoleColor.Red } }
                 },
-                { StaticCellType.Cage, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.Black },
-                    { DynamicCellType.Player, ConsoleColor.Black } }
+                { CellTypes.Cage, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.DarkGreen },
+                    { CellTypes.Box, ConsoleColor.Green },
+                    { CellTypes.Player, ConsoleColor.Red } }
                 },
-                { StaticCellType.Plate, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.Black },
-                    { DynamicCellType.Player, ConsoleColor.Black } }
+                { CellTypes.Plate, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Gray },
+                    { CellTypes.Box, ConsoleColor.DarkYellow },
+                    { CellTypes.Player, ConsoleColor.Red } }
                 },
-                { StaticCellType.Key, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.Black },
-                    { DynamicCellType.Player, ConsoleColor.Black } }
+                { CellTypes.Key, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Gray },
+                    { CellTypes.Box, ConsoleColor.DarkYellow },
+                    { CellTypes.Player, ConsoleColor.Red } }
                 },
-                { StaticCellType.Door, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.DarkMagenta },
-                    { DynamicCellType.Box, ConsoleColor.DarkMagenta },
-                    { DynamicCellType.Player, ConsoleColor.DarkMagenta } }
+                { CellTypes.Door, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.DarkYellow },
+                    { CellTypes.Player, ConsoleColor.Red } }
                 },
-                { StaticCellType.Bomb, new Dictionary<DynamicCellType, ConsoleColor> {
-                    { DynamicCellType.NoCell, ConsoleColor.Black },
-                    { DynamicCellType.Box, ConsoleColor.Black },
-                    { DynamicCellType.Player, ConsoleColor.Black } }
+                { CellTypes.Bomb, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.DarkRed },
+                    { CellTypes.Box, ConsoleColor.DarkYellow },
+                    { CellTypes.Player, ConsoleColor.Red } }
+                },
+            };
+            backgroundColors = new Dictionary<CellTypes, Dictionary<CellTypes, ConsoleColor>> {
+                { CellTypes.NoCell, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.Black },
+                    { CellTypes.Player, ConsoleColor.Black } }
+                },
+                { CellTypes.Wall, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.DarkRed },
+                    { CellTypes.Box, ConsoleColor.DarkRed },
+                    { CellTypes.Player, ConsoleColor.DarkRed } }
+                },
+                { CellTypes.Cage, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.Black },
+                    { CellTypes.Player, ConsoleColor.Black } }
+                },
+                { CellTypes.Plate, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.Black },
+                    { CellTypes.Player, ConsoleColor.Black } }
+                },
+                { CellTypes.Key, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.Black },
+                    { CellTypes.Player, ConsoleColor.Black } }
+                },
+                { CellTypes.Door, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.DarkMagenta },
+                    { CellTypes.Box, ConsoleColor.DarkMagenta },
+                    { CellTypes.Player, ConsoleColor.DarkMagenta } }
+                },
+                { CellTypes.Bomb, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.Black },
+                    { CellTypes.Player, ConsoleColor.Black } }
                 },
             };
         }
