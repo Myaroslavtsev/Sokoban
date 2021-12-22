@@ -5,14 +5,14 @@ using System.Drawing;
 using System.IO;
 
 // todo:
-// + start tests
+// - start tests
 // + text commands => interface
 // portals; bomb doors
-// one style of map layers
-// common interface to all cells
+// + one style of map layers
+// + common interface to all cells
 // + draw when changed only
 // + directory selection
-// move player - where to check boxes count ?
+// - move player - where to check boxes count ?
 
 namespace Sokoban
 {

@@ -23,6 +23,12 @@ namespace Sokoban
                     CellAction = new MapCellAction(new Point(0, 0), true, null);
                     return true;
                 }
+                if ((cell as GamePlayer).BombCount > 0)
+                {
+                    (cell as GamePlayer).BombCount--;
+                    CellAction = new MapCellAction(new Point(0, 0), true, null);
+                    return true;
+                }
             }
             return false;
         }

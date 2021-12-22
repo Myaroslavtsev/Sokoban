@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Drawing;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Sokoban
 {
     [TestFixture]
-    class StaticCellTests
+    class MapCellTests
     {
         [TestCaseSource("DoorTestCases")]
-        public void DoorTest(IDynamicCell enteringCell, List<int> playerKeys, bool expectedResult)
+        public void DoorTest(IMapCell enteringCell, List<int> playerKeys, bool expectedResult)
         {
             // arrange
-            var door = new Door(1);
+            var door = new Door(0, 0, 1);
             var map = new GameMap();
-            map.Player = new GamePlayer(1, 1);
+            map.DynamicLayer.AddCell(new GamePlayer(1, 1));
             if (enteringCell is GamePlayer)
                 (enteringCell as GamePlayer).Keys = playerKeys;
             // act
@@ -54,12 +54,12 @@ namespace Sokoban
         };
 
         [TestCaseSource("BombTestCases")]
-        public void BombTest(IDynamicCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, MapCellAction expextedAction)
+        public void BombTest(IMapCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, MapCellAction expextedAction)
         {
             // arrange
-            var bomb = new Bomb();
+            var bomb = new Bomb(0, 0);
             var map = new GameMap();
-            map.Player = new GamePlayer(1, 1);
+            map.DynamicLayer.AddCell(new GamePlayer(1, 1));
             if (enteringCell is GamePlayer)
                 (enteringCell as GamePlayer).BombCount = initBombCount;
             // act
@@ -80,7 +80,7 @@ namespace Sokoban
                 0,
                 true,
                 0,
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             },
             new object[] // player enters the door => true, bomb disappears, player gets bomb
             {
@@ -88,17 +88,17 @@ namespace Sokoban
                 1,
                 true,
                 2,
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             },
         };
 
         [TestCaseSource("KeyTestCases")]
-        public void KeyTest(IDynamicCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, MapCellAction expectedAction)
+        public void KeyTest(IMapCell enteringCell, List<int> initKeys, bool expectedResult, List<int> expectedKeys, MapCellAction expectedAction)
         {
             // arrange
-            var key = new Key(3);
+            var key = new Key(0, 0, 3);
             var map = new GameMap();
-            map.Player = new GamePlayer(1, 1);
+            map.DynamicLayer.AddCell(new GamePlayer(1, 1));
             if (enteringCell is GamePlayer)
                 (enteringCell as GamePlayer).Keys = initKeys;
             // act
@@ -119,7 +119,7 @@ namespace Sokoban
                 new List<int> { },
                 true,
                 new List<int> { },
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             },
             new object[] // player enters the door => true, key disappears
             {
@@ -127,7 +127,7 @@ namespace Sokoban
                 new List<int> { },
                 true,
                 new List<int> { 3 },
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             },
             new object[] // player enters the door => true, key disappears
             {
@@ -135,20 +135,20 @@ namespace Sokoban
                 new List<int> { 1 },
                 true,
                 new List<int> { 1, 3 },
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             },
         };
 
         [TestCaseSource("PlateTestCases")]
-        public void PlateTest(IDynamicCell enteringCell, int doorID, bool expectedResult, MapCellAction expectedPlateAction, MapCellAction expectedDoorAction)
+        public void PlateTest(IMapCell enteringCell, int doorID, bool expectedResult, MapCellAction expectedPlateAction, MapCellAction expectedDoorAction)
         {
             // arrange
-            var plate = new Plate(3);
+            var plate = new Plate(0, 0, 3);
             var map = new GameMap();
-            map.Player = new GamePlayer(1, 1);
+            map.DynamicLayer.AddCell(new GamePlayer(1, 1));
             var gameMapTest = new GameMapTest();
-            map.StaticLayer = gameMapTest.EmptyStaticLayer(3, 3);
-            map.StaticLayer[2][1] = new Door(doorID);
+            map.StaticLayer = new MapLayer(3, 3);
+            map.StaticLayer.AddCell(new Door(2, 1, doorID));
             // act
             var actualResult = plate.AllowsToEnter(enteringCell, map, new HashSet<GameOption>());
             // assert
@@ -161,11 +161,13 @@ namespace Sokoban
                 Assert.AreEqual(expectedPlateAction.TransformTo, plate.CellAction.TransformTo);
             }
             if (expectedDoorAction is null)
-                Assert.That(map.StaticLayer[2][1].CellAction is null);
+                Assert.That(map.StaticLayer.GetByPosition(2, 1).CellAction is null);
             else
             {
-                Assert.AreEqual(expectedDoorAction.WillTransform, map.StaticLayer[2][1].CellAction.WillTransform);
-                Assert.AreEqual(expectedDoorAction.TransformTo, map.StaticLayer[2][1].CellAction.TransformTo);
+                Assert.AreEqual(expectedDoorAction.WillTransform, 
+                    map.StaticLayer.GetByPosition(2, 1).CellAction.WillTransform);
+                Assert.AreEqual(expectedDoorAction.TransformTo, 
+                    map.StaticLayer.GetByPosition(2, 1).CellAction.TransformTo);
             }
         }
 
@@ -185,7 +187,7 @@ namespace Sokoban
                 3,
                 true,
                 null,
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             },
             new object[] // player enters, IDs not equal => nothing transforms
             {
@@ -201,15 +203,15 @@ namespace Sokoban
                 3,
                 true,
                 null,
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             }
         };
 
         [TestCaseSource("WallTestCases")]
-        public void WallTest(IDynamicCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, MapCellAction expectedAction)
+        public void WallTest(IMapCell enteringCell, int initBombCount, bool expectedResult, int expectedBombCount, MapCellAction expectedAction)
         {
             // arrange
-            var wall = new Wall();
+            var wall = new Wall(0, 0);
             var map = new GameMap();
             if (enteringCell is GamePlayer)
                 (enteringCell as GamePlayer).BombCount = initBombCount;
@@ -252,7 +254,7 @@ namespace Sokoban
                 3,
                 true,
                 2,
-                new MapCellAction(true, null)
+                new MapCellAction(new Point(0, 0), true, null)
             }
         };
     }

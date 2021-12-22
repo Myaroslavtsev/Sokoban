@@ -7,79 +7,59 @@ namespace Sokoban
     [TestFixture]
     public class GameMapTest
     {
-        [TestCase(0, 0)]
-        [TestCase(1, 1)]
-        [TestCase(5, 3)]
-        public void GenerateDynamicLayerTest(int width, int height)
-        {
-            // arrange
-            var map = new GameMap();
-            map.StaticLayer = EmptyStaticLayer(width, height);
-            var expectedDynamicLayer = EmptyDynamicLayer(width, height);
-            // act
-            map.GenerateDynamicLayer();
-            // assert
-            Assert.AreEqual(height, map.Height);
-            Assert.AreEqual(width, map.Width);
-            Assert.AreEqual(height, map.DynamicLayer.Count);
-            for (var y = 0; y < height; y++)
-                Assert.AreEqual(width, map.DynamicLayer[y].Count);
-            Assert.AreEqual(expectedDynamicLayer, map.DynamicLayer);
-        }
-
         [TestCaseSource("UpdateDynLayerSource")]
-        public void UpdateDynamicLayerTest(List<List<IStaticCell>> staticLayer,
-            List<IDynamicCell> dynamicCells, GamePlayer player,
-            List<List<IDynamicCell>> expectedDynamicLayer)
+        public void UpdateLayerTest(int width, int height, IMapCell initialCell, int expectedX, int expectedY, IMapCell ExpectedCell)
         {
             // arrange
             var map = new GameMap();                        
-            map.StaticLayer = staticLayer;
-            map.GenerateDynamicLayer();
-            map.DynamicCells = dynamicCells;
-            map.Player = player;
+            map.StaticLayer = new MapLayer(width, height);
+            map.DynamicLayer = new MapLayer(width, height);
+            map.StaticLayer.AddCell(initialCell);
             // act
-            map.UpdateDynamicLayer();
+            map.StaticLayer.DoCellActions();
+            var actualCell = map.StaticLayer.GetByPosition(expectedX, expectedY);
             // assert
-            Assert.AreEqual(expectedDynamicLayer.Count, map.DynamicLayer.Count);
-            for (var y = 0; y < map.Height; y++)
-            {
-                Assert.AreEqual(expectedDynamicLayer[y].Count, map.DynamicLayer[y].Count);
-                for (var x = 0; x < map.Width; x++)
-                    if (expectedDynamicLayer[y][x] is null)
-                        Assert.That(map.DynamicLayer[y][x] is null);
-                    else
-                        Assert.IsInstanceOf(expectedDynamicLayer[y][x].GetType(), map.DynamicLayer[y][x]);
+            if (ExpectedCell is null)
+                Assert.That(actualCell is null);
+            else
+            {                
+                Assert.AreEqual(ExpectedCell.GetType(), actualCell.GetType());
+                Assert.AreEqual(ExpectedCell.Position, actualCell.Position);
+                Assert.AreEqual(ExpectedCell.CellAction, actualCell.CellAction);
             }
         }
 
         static readonly object[] UpdateDynLayerSource =
         {
-            new object[]
+            new object[] // no action => no changes, action cleared
             {
-                new List<List<IStaticCell>>
-                {
-                    new List<IStaticCell> { null,        new Wall(), new Wall(), new Wall(), new Wall(), new Wall() },
-                    new List<IStaticCell> { new Wall(),  new Wall(), null,       null,      new Plate(3), new Door(5) },
-                    new List<IStaticCell> { new Wall(),  new Cage(), null,       new Wall(), new Bomb(), new Wall() },
-                    new List<IStaticCell> { new Wall(),  new Cage(), null,       null,       new Key(5), new Door(3) },
-                    new List<IStaticCell> { new Wall(),  new Wall(), new Wall(), new Wall(), new Wall(), new Wall() },
-                },
-                new List<IDynamicCell>
-                {
-                    new Box(1, 2),
-                    new Box(2, 3),
-                    new Box(3, 3)                    
-                },
-                new GamePlayer(3, 1),
-                new List<List<IDynamicCell>>
-                {
-                    new List<IDynamicCell> { null,      null,       null,       null,       null,       null },
-                    new List<IDynamicCell> { null,      null,       null, new GamePlayer(3, 1), null,   null },
-                    new List<IDynamicCell> { null,   new Box(1, 2), null,       null,       null,       null },
-                    new List<IDynamicCell> { null,      null,    new Box(2, 3), new Box(3, 3), null,    null },
-                    new List<IDynamicCell> { null,      null,       null,       null,       null,       null },
-                }
+                3, 3,
+                new Wall(1, 1) { CellAction = new MapCellAction(new Point(0, 0), false, null) },
+                1, 1,
+                new Wall(1, 1) { CellAction = null }
+            },
+            new object[] // transform to null => cell deleted
+            {
+                3, 3,
+                new Wall(1, 1) { CellAction = new MapCellAction(new Point(0, 0), true, null) },
+                1, 1,
+                null
+            },
+            new object[] // move by (1, 1) => cell moved
+            {
+                3, 3,
+                new Wall(1, 1) { CellAction = new MapCellAction(new Point(1, 1), false, null) },
+                2, 2,
+                new Wall(2, 2)
+            },
+            new object[] // transform to cage => cell transformed
+            {
+                3, 3,
+                new Wall(1, 1) { CellAction = new MapCellAction(new Point(0, 0), 
+                    true, 
+                    new Cage(2, 2)) },
+                2, 2,
+                new Cage(2, 2)
             }
         };
 
@@ -95,7 +75,7 @@ namespace Sokoban
         {
             // arrange
             var map = new GameMap();
-            map.StaticLayer = EmptyStaticLayer(width, height);
+            map.StaticLayer = new MapLayer(width, height);
             // act
             var actualResult = map.PositionPossible(new System.Drawing.Point(x, y));
             // assert
@@ -103,15 +83,15 @@ namespace Sokoban
         }
 
         [TestCaseSource("MovableBoxesSource")]
-        public void MovableBoxesTest(int width, int height, GamePlayer player, List<IDynamicCell> dynamicCells, Point direction, int expectedResult)
+        public void MovableBoxesTest(int width, int height, GamePlayer player, List<IMapCell> dynamicCells, Point direction, int expectedResult)
         {
             // arrange
             var map = new GameMap();
-            map.StaticLayer = EmptyStaticLayer(width, height);
-            map.GenerateDynamicLayer();
-            map.DynamicCells = dynamicCells;
-            map.Player = player;
-            map.UpdateDynamicLayer();
+            map.StaticLayer = new MapLayer(width, height);
+            map.DynamicLayer = new MapLayer(width, height);
+            map.DynamicLayer.AddCell(player);
+            foreach (var cell in dynamicCells)
+                map.DynamicLayer.AddCell(cell);
             var newPos = new Point(
                 player.Position.X + direction.X,
                 player.Position.Y + direction.Y);
@@ -126,69 +106,45 @@ namespace Sokoban
             new object[] // force = 3, boxCount = 2, direction = right  =>  2 
             {   
                 5, 1, new GamePlayer(1, 0){ Force = 3 }, 
-                new List<IDynamicCell>{ new Box(2, 0), new Box(3, 0) },
+                new List<IMapCell>{ new Box(2, 0), new Box(3, 0) },
                 new Point(1, 0),
                 2
             },
             new object[] // force = 2, boxCount = 2, direction = right  =>  2 
             {
                 5, 1, new GamePlayer(1, 0){ Force = 2 },
-                new List<IDynamicCell>{ new Box(2, 0), new Box(3, 0) },
+                new List<IMapCell>{ new Box(2, 0), new Box(3, 0) },
                 new Point(1, 0),
                 2
             },
             new object[] // force = 1, boxCount = 0, direction = right  =>  0 
             {
                 5, 1, new GamePlayer(1, 0){ Force = 1 },
-                new List<IDynamicCell>{ },
+                new List<IMapCell>{ },
                 new Point(1, 0),
                 0
             },
             new object[] // force = 3, boxCount = 2, direction = right, no space  =>  -1
             {
                 4, 1, new GamePlayer(1, 0){ Force = 2 },
-                new List<IDynamicCell>{ new Box(2, 0), new Box(3, 0) },
+                new List<IMapCell>{ new Box(2, 0), new Box(3, 0) },
                 new Point(1, 0),
                 -1
             },
             new object[] // force = 1, boxCount = 2, direction = right  =>  2 
             {
                 5, 1, new GamePlayer(1, 0){ },
-                new List<IDynamicCell>{ new Box(2, 0), new Box(3, 0) },
+                new List<IMapCell>{ new Box(2, 0), new Box(3, 0) },
                 new Point(1, 0),
                 -1
             },
             new object[] // force = 2, boxCount = 2, direction = left  =>  2 
             {
                 5, 1, new GamePlayer(3, 0){ Force = 2 },
-                new List<IDynamicCell>{ new Box(1, 0), new Box(2, 0) },
+                new List<IMapCell>{ new Box(1, 0), new Box(2, 0) },
                 new Point(-1, 0),
                 2
             },
         };
-
-        public List<List<IStaticCell>> EmptyStaticLayer(int width, int height)
-        {
-            var result = new List<List<IStaticCell>>(height);
-            for (var y = 0; y < height; y++)
-            {
-                result.Add(new List<IStaticCell>(width));
-                for (var x = 0; x < width; x++)
-                    result[y].Add(null);
-            }
-            return result;
-        }
-
-        private List<List<IDynamicCell>> EmptyDynamicLayer(int width, int height)
-        {
-            var result = new List<List<IDynamicCell>>(height);
-            for (var y = 0; y < height; y++)
-            {
-                result.Add(new List<IDynamicCell>(width));
-                for (var x = 0; x < width; x++)
-                    result[y].Add(null);
-            }
-            return result;
-        }
     }
 }
