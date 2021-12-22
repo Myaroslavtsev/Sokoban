@@ -33,10 +33,9 @@ namespace Sokoban
 
         public void UpdateCells()
         {
-            if (GameOptions.Contains(GameOption.Gravity))
-            {
+            if (GameOptions.Contains(GameOption.Gravity))            
                 RealizeGravity();
-            }
+            RealizePortals();
             PerformCellActions();
         }        
 
@@ -110,13 +109,22 @@ namespace Sokoban
                 {
                     if (Map.DynamicLayer.GetByPosition(x, y) is Box)
                     {
-                        if ((Map.DynamicLayer.GetByPosition(x, y+1) is null) && ((Map.StaticLayer.GetByPosition(x, y+1) is null) ||
-                            Map.StaticLayer.GetByPosition(x, y+1).AllowsToEnter(Map.DynamicLayer.GetByPosition(x, y) as Box, Map, GameOptions)))
+                        if ((Map.DynamicLayer.GetByPosition(x, y+1) is null) && 
+                            ((Map.StaticLayer.GetByPosition(x, y+1) is null) ||
+                            Map.StaticLayer.GetByPosition(x, y+1).
+                                AllowsToEnter(Map.DynamicLayer.GetByPosition(x, y) as Box, Map, GameOptions)))
                             Map.DynamicLayer.GetByPosition(x, y).CellAction = new MapCellAction(down, false, null);
                     }
                 }
                 PerformCellActions();
             }
+        }
+
+        private void RealizePortals()
+        {
+            foreach(var cell in Map.StaticLayer.Cells)
+                if ((cell is Portal) && !(Map.DynamicLayer.GetByPosition(cell.Position) is null))                
+                    cell.AllowsToEnter(Map.DynamicLayer.GetByPosition(cell.Position), Map, GameOptions);                
         }
 
         private void PerformCellActions()
