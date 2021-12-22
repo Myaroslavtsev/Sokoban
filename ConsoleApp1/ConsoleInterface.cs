@@ -289,6 +289,11 @@ namespace Sokoban
                     { CellTypes.Box, "X" },
                     { CellTypes.Player, "P" } }
                 },
+                { CellTypes.Portal, new Dictionary<CellTypes, string> {
+                    { CellTypes.NoCell, "O" },
+                    { CellTypes.Box, "X" },
+                    { CellTypes.Player, "P" } }
+                },
             };
             foregroundColors = new Dictionary<CellTypes, Dictionary<CellTypes, ConsoleColor>> {
                 { CellTypes.NoCell, new Dictionary<CellTypes, ConsoleColor> {
@@ -323,6 +328,11 @@ namespace Sokoban
                 },
                 { CellTypes.Bomb, new Dictionary<CellTypes, ConsoleColor> {
                     { CellTypes.NoCell, ConsoleColor.DarkRed },
+                    { CellTypes.Box, ConsoleColor.DarkYellow },
+                    { CellTypes.Player, ConsoleColor.Red } }
+                },
+                { CellTypes.Portal, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.White },
                     { CellTypes.Box, ConsoleColor.DarkYellow },
                     { CellTypes.Player, ConsoleColor.Red } }
                 },
@@ -363,6 +373,11 @@ namespace Sokoban
                     { CellTypes.Box, ConsoleColor.Black },
                     { CellTypes.Player, ConsoleColor.Black } }
                 },
+                { CellTypes.Portal, new Dictionary<CellTypes, ConsoleColor> {
+                    { CellTypes.NoCell, ConsoleColor.Black },
+                    { CellTypes.Box, ConsoleColor.Black },
+                    { CellTypes.Player, ConsoleColor.Black } }
+                }
             };
         }
     }

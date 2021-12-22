@@ -6,7 +6,6 @@ namespace Sokoban
     public class Cage : IMapCell
     {
         public CellTypes CellType => CellTypes.Cage; 
-
         public char DataFileChar => '*';
         public Point Position { get; set; }
         public MapCellAction CellAction { get; set; }

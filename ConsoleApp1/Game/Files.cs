@@ -161,7 +161,7 @@ namespace Sokoban
                 for (var x = 0; x < width; x++)
                     if (x < cellData[0].Length)
                         if (cellData[0][x] == '*' || cellData[0][x] == '#' || cellData[0][x] == '=')
-                            map.StaticLayer.AddCell(CharToMapCell(cellData[0][x], x, y, 0));                    
+                            map.StaticLayer.AddCell(CharToMapCell(cellData[0][x], x, y, 0, 0, 0));                    
             }                
             return true;
         }        
@@ -169,7 +169,6 @@ namespace Sokoban
         private static string WriteStaticCellMap(GameMap map)
         {
             var result = $"StaticCells;{map.Width};{map.Height}\r\n";
-            var row = 0;
             for (var y = 0; y < map.Height; y++)
             {
                 for (var x = 0; x < map.Width; x++)
@@ -178,7 +177,7 @@ namespace Sokoban
                     if (cell is null)
                         result += " ";
                     else
-                        if (cell is ICellWithID)
+                        if ((cell is ICellWithID) || (cell is ICellWithDestination))
                             result += "?";
                         else
                             result += cell.DataFileChar;
@@ -206,9 +205,20 @@ namespace Sokoban
                     return false;
                 if (!int.TryParse(cellData[2], out int y))
                     return false;
-                if (!int.TryParse(cellData[3], out int id))
-                    return false;
-                map.StaticLayer.AddCell(CharToMapCell(cellData[0][0], x, y, id));
+                if (CharToCellType(cellData[0][0]) == CellTypes.Portal)
+                {
+                    if (!int.TryParse(cellData[3], out int destinationX))
+                        return false;
+                    if (!int.TryParse(cellData[4], out int destinationY))
+                        return false;
+                    map.StaticLayer.AddCell(CharToMapCell(cellData[0][0], x, y, 0, destinationX, destinationY));
+                }
+                else
+                {
+                    if (!int.TryParse(cellData[3], out int id))
+                        return false;
+                    map.StaticLayer.AddCell(CharToMapCell(cellData[0][0], x, y, id, 0, 0));
+                }
             }
             return true;
         }
@@ -218,12 +228,21 @@ namespace Sokoban
             var result = "";
             var count = 0;
             foreach (var cell in map.StaticLayer.Cells)
+            {
                 if (cell is ICellWithID)
-                {                    
+                {
                     result += $"{cell.DataFileChar};{cell.Position.X};{cell.Position.Y};" +
                         $"{(cell as ICellWithID).ID}\r\n";
-                        count++;
+                    count++;
                 }
+                if (cell is ICellWithDestination)
+                {
+                    result += $"{cell.DataFileChar};{cell.Position.X};{cell.Position.Y};" +
+                        $"{(cell as ICellWithDestination).Destination.X};" +
+                        $"{(cell as ICellWithDestination).Destination.Y}\r\n";
+                    count++;
+                }
+            }
             result = $"UniqueCells;{count}\r\n" + result;
             return result;
         }
@@ -247,7 +266,7 @@ namespace Sokoban
                     return false;
                 if (!int.TryParse(cellData[2], out int y))
                     return false;
-                map.DynamicLayer.AddCell(CharToMapCell(cellData[0][0], x, y, 0));
+                map.DynamicLayer.AddCell(CharToMapCell(cellData[0][0], x, y, 0, 0, 0));
             }
             return true;
         }
@@ -358,13 +377,31 @@ namespace Sokoban
             return isValid;
         }
 
-        private static IMapCell CharToMapCell(char cellCode, int x, int y, int id)
+        private static CellTypes CharToCellType(char cellCode)
+        {
+            return cellCode switch
+            {
+                '_' => CellTypes.Plate,
+                '+' => CellTypes.Key,
+                '|' => CellTypes.Door,
+                '0' => CellTypes.Portal,
+                '#' => CellTypes.Wall,
+                '*' => CellTypes.Cage,
+                '=' => CellTypes.Bomb,
+                '%' => CellTypes.Box,
+                _ => CellTypes.NoCell
+            };
+        }
+
+        private static IMapCell CharToMapCell(char cellCode, int x, int y, 
+            int id, int destinationX, int destinationY)
         {
             return cellCode switch
             {
                 '_' => new Plate(x, y, id),
                 '+' => new Key(x, y, id),
                 '|' => new Door(x, y, id),
+                '0' => new Portal(x, y, destinationX, destinationY),
                 '#' => new Wall(x, y),
                 '*' => new Cage(x, y),
                 '=' => new Bomb(x, y),

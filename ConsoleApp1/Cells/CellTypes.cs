@@ -8,7 +8,8 @@
         Plate,  // _
         Key,    // +
         Door,   // |
-        Bomb,    // =
+        Bomb,   // =
+        Portal, // 0
         Box,    // %
         Player  // @
     }
