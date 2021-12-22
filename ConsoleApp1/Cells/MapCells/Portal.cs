@@ -23,7 +23,8 @@ namespace Sokoban
                 if (cell.CellAction is null)
                     cell.CellAction = new MapCellAction(move, false, null);
                 else
-                    cell.CellAction.Move = move;
+                    cell.CellAction = new MapCellAction(move, 
+                        cell.CellAction.WillTransform, cell.CellAction.TransformTo);
                 return false;
             }
             return true;

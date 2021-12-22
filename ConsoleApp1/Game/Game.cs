@@ -35,7 +35,7 @@ namespace Sokoban
         {
             if (GameOptions.Contains(GameOption.Gravity))            
                 RealizeGravity();
-            RealizePortals();
+            CheckPortals();
             PerformCellActions();
         }        
 
@@ -120,7 +120,7 @@ namespace Sokoban
             }
         }
 
-        private void RealizePortals()
+        private void CheckPortals()
         {
             foreach(var cell in Map.StaticLayer.Cells)
                 if ((cell is Portal) && !(Map.DynamicLayer.GetByPosition(cell.Position) is null))                

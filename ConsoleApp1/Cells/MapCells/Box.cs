@@ -8,7 +8,6 @@ namespace Sokoban
     public class Box : IMapCell
     {
         public CellTypes CellType => CellTypes.Box; 
-
         public char DataFileChar => '%';
         public Point Position { get; set; }
         public MapCellAction CellAction { get; set; }

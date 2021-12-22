@@ -4,16 +4,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 
-// todo:
-// - start tests
-// + text commands => interface
-// portals; bomb doors
-// + one style of map layers
-// + common interface to all cells
-// + draw when changed only
-// + directory selection
-// - move player - where to check boxes count ?
-
 namespace Sokoban
 {
     static class ConsoleInterface
@@ -77,7 +67,10 @@ namespace Sokoban
                 AnalyzeKey(game, Console.ReadKey(true));            
             var resultMessage = game.CheckGameState();
             if (resultMessage != string.Empty)
+            {
                 commandResult = resultMessage;
+                footerChanged = true;
+            }
         }
 
         private static void AnalyzeKey(Game game, ConsoleKeyInfo keyInfo)
@@ -85,7 +78,7 @@ namespace Sokoban
             switch (keyInfo.Key)
             {
                 case ConsoleKey.Enter:
-                    commandResult = StartCommand(game, commandString);                    
+                    commandResult = PerformCommand(game, commandString);                    
                     commandString = "";
                     footerChanged = true;
                     return;
@@ -110,7 +103,7 @@ namespace Sokoban
             footerChanged = true;
         }
 
-        private static string StartCommand(Game game, string command)
+        private static string PerformCommand(Game game, string command)
         {
             var commandWords = command.ToLower().Split(' ');
             switch (commandWords[0])
