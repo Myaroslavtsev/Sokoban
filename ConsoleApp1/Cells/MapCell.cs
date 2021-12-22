@@ -9,7 +9,7 @@ namespace Sokoban
     {
         public CellTypes CellType { get; }
         public char DataFileChar { get; }
-        public bool AllowsToEnter(IMapCell cell, GameMap map, HashSet<GameOption> options); //=> false;
+        public bool AllowsToEnter(IMapCell cell, GameMap map, HashSet<GameOption> options);
         public Point Position { get; set; }
         public MapCellAction CellAction { get; set; }
         int IComparable.CompareTo(object obj)

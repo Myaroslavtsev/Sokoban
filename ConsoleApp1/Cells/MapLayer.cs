@@ -44,7 +44,6 @@ namespace Sokoban
             var right = Cells.Count;
             while (right - left > 1)
             {
-                //var middle = left + (right - left) / 2;
                 var middle = (left + right) / 2;
                 if (Cells[middle].Position == pos)
                     return Cells[middle];

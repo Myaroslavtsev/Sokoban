@@ -117,8 +117,6 @@ namespace Sokoban
             if (!ReadPlayerData(sr, game.Map))
                 return FinishFileRead(sr, fileName);
             sr.Close();
-            //game.Map.GenerateDynamicLayer();
-            //game.Map.UpdateDynamicLayer();
             return game.Start();
         }
 
@@ -171,19 +169,22 @@ namespace Sokoban
         private static string WriteStaticCellMap(GameMap map)
         {
             var result = $"StaticCells;{map.Width};{map.Height}\r\n";
-            /*for (var y = 0; y < map.Height; y++)
+            var row = 0;
+            for (var y = 0; y < map.Height; y++)
             {
                 for (var x = 0; x < map.Width; x++)
-                    if ((map.StaticLayer.GetByPosition(x, y) is IStaticCell) &&
-                        !(map.StaticLayer[y][x] is IStaticCellWithID))
-                        result += map.StaticLayer[y][x].DataFileChar;
-                    else                    
-                        if (map.StaticLayer[y][x] is IStaticCellWithID)
+                {
+                    var cell = map.StaticLayer.GetByPosition(x, y);
+                    if (cell is null)
+                        result += " ";
+                    else
+                        if (cell is ICellWithID)
                             result += "?";
                         else
-                            result += " ";                    
-                result += "\r\n";                
-            }*/
+                            result += cell.DataFileChar;
+                }
+                result += "\r\n";
+            }
             return result;
         }
 
@@ -215,15 +216,14 @@ namespace Sokoban
         private static string WriteUniqueCellList(GameMap map)
         {
             var result = "";
-            int count = 0;
-            /*for (var y = 0; y < map.Height; y++)
-                for (var x = 0; x < map.Width; x++)
-                    if (map.StaticLayer[y][x] is IStaticCellWithID)
-                    {
-                        result += $"{map.StaticLayer[y][x].DataFileChar};{x};{y};" +
-                            $"{(map.StaticLayer[y][x] as IStaticCellWithID).ID}\r\n";
+            var count = 0;
+            foreach (var cell in map.StaticLayer.Cells)
+                if (cell is ICellWithID)
+                {                    
+                    result += $"{cell.DataFileChar};{cell.Position.X};{cell.Position.Y};" +
+                        $"{(cell as ICellWithID).ID}\r\n";
                         count++;
-                    }*/
+                }
             result = $"UniqueCells;{count}\r\n" + result;
             return result;
         }
@@ -294,12 +294,17 @@ namespace Sokoban
 
         private static string WriteDynamicObjectList(GameMap map)
         {
-            var result = $"DynamicCells;{map.DynamicLayer.Cells.Count}\r\n";
+            var result = "";
+            var count = 0;
             foreach (var cell in map.DynamicLayer.Cells)
             {
                 if (cell is Box)
+                {
                     result += $"{cell.DataFileChar};{cell.Position.X};{cell.Position.Y}\r\n";
+                    count++;
+                }
             }
+            result = $"DynamicCells;{count}\r\n" + result;
             result += $"{map.Player.DataFileChar};{map.Player.Position.X};{map.Player.Position.Y};" +
                 $"{map.Player.Moves};{map.Player.MaxMoves};{map.Player.Force};{map.Player.BombCount}\r\n" +
                 $"Keys;{map.Player.Keys.Count}";

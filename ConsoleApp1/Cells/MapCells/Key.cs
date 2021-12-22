@@ -4,7 +4,7 @@ using System.Drawing;
 
 namespace Sokoban
 {
-    public class Key : IMapCell
+    public class Key : IMapCell, ICellWithID
     {
         public char DataFileChar => '+'; 
 

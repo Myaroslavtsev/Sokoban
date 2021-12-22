@@ -120,69 +120,11 @@ namespace Sokoban
         }
 
         private void PerformCellActions()
-        {            
-            //PerformStaticCellActions();   
-            //PerformDynamicCellActions();
-            //PerformPlayerActions(Map.Player);
-            //Map.UpdateDynamicLayer();
-            MapChanged = Map.StaticLayer.DoCellActions() || Map.DynamicLayer.DoCellActions();
-        }
-
-        /*private void PerformStaticCellActions()
         {
-            for (var y = 0; y < Map.Height; y++)
-                for (var x = 0; x < Map.Width; x++)
-                {
-                    if (!(Map.StaticLayer[y][x] is null) &&
-                        !(Map.StaticLayer[y][x].CellAction is null))
-                    
-                        if (Map.StaticLayer[y][x].CellAction.WillTransform)
-                        {
-                            Map.StaticLayer[y][x] = Map.StaticLayer[y][x].CellAction.TransformTo;
-                            MapChanged = true;
-                        }
-                    if (!(Map.StaticLayer[y][x] is null) &&
-                        !(Map.StaticLayer[y][x].CellAction is null))
-                        Map.StaticLayer[y][x].CellAction = null;
-                }
+            MapChanged = false;
+            MapChanged |= Map.StaticLayer.DoCellActions();
+            MapChanged |= Map.DynamicLayer.DoCellActions();
         }
-
-        private void PerformDynamicCellActions()
-        {
-            for (int i = 0; i < Map.DynamicCells.Count; i++)
-            {
-                if (!(Map.DynamicCells[i].CellAction is null))
-                {
-                    if (Map.DynamicCells[i].CellAction.Move.X != 0 || Map.DynamicCells[i].CellAction.Move.Y != 0)
-                    {
-                        Map.DynamicCells[i].Position =
-                            Map.DynamicCells[i].Position.Add(Map.DynamicCells[i].CellAction.Move);
-                        MapChanged = true;
-                    }
-                    if (Map.DynamicCells[i].CellAction.WillTransform)
-                    {
-                        Map.DynamicCells[i] = Map.DynamicCells[i].CellAction.TransformTo;
-                        MapChanged = true;
-                    }                    
-                }
-                if (!(Map.DynamicCells[i].CellAction is null))
-                    Map.DynamicCells[i].CellAction = null;
-            }
-        }
-
-        private void PerformPlayerActions(GamePlayer player)
-        {
-            if (player.CellAction != null)
-            {
-                if (player.CellAction.Move.X != 0 || player.CellAction.Move.Y != 0)
-                {
-                    player.Position = player.Position.Add(player.CellAction.Move);
-                    MapChanged = true;
-                    player.CountMove();
-                }
-                player.CellAction = null;
-            }
-        }*/
 
         private bool PlayerWin()
         {
@@ -222,10 +164,6 @@ namespace Sokoban
         private void SetInitialGameData(string filename)
         {
             Files.LoadGame(filename, this);
-            // following 3 lines are for debug only
-            /*Map.GenerateTestMap(); 
-            MaxMoves = 100; 
-            Playable = true;*/
         }
     }
 }

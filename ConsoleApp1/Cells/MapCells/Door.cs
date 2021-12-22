@@ -4,7 +4,7 @@ using System.Drawing;
 
 namespace Sokoban
 {
-    public class Door : IMapCell
+    public class Door : IMapCell, ICellWithID
     {
         public char DataFileChar => '|';
 
