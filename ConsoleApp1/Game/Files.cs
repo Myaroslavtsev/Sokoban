@@ -121,7 +121,8 @@ namespace Sokoban
         }
 
         private static bool ReadGameOptions(StreamReader sr, Game game)
-        {
+        {            
+            game.GameOptions.Clear();
             string[] dataCells = sr.ReadLine().ToLower().Split(';');
             if (dataCells.Length < 2 || dataCells[0] != "options")
                 return false;
@@ -133,7 +134,7 @@ namespace Sokoban
         }
 
         private static string WriteGameOptions(HashSet<GameOption> options)
-        {
+        {            
             var result = $"Options;{options.Count}";
             foreach (var option in options)
                 result += $";{option}";

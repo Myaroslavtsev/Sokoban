@@ -129,7 +129,6 @@ namespace Sokoban
 
         private void PerformCellActions()
         {
-            MapChanged = false;
             MapChanged |= Map.StaticLayer.DoCellActions();
             MapChanged |= Map.DynamicLayer.DoCellActions();
         }
@@ -142,14 +141,17 @@ namespace Sokoban
                 {
                     finished = false;
                     break;
-                }
+                }            
+            MapChanged |= finished;
             return finished;
         }
 
         private bool MoveLimitReached()
         {
-            return GameOptions.Contains(GameOption.MoveLimit) && 
+            var limitReached = GameOptions.Contains(GameOption.MoveLimit) && 
                 Map.Player.Moves >= Map.Player.MaxMoves;
+            MapChanged |= limitReached;
+            return limitReached;
         }
 
         private string InvertOption(GameOption option)
