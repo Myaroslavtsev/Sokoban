@@ -6,13 +6,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="bin\Release\net5.0\Sokoban.deps.json" />
+    <Content Include="bin\Release\net5.0\Sokoban.runtimeconfig.dev.json" />
+    <Content Include="bin\Release\net5.0\Sokoban.runtimeconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
     <PackageReference Include="NUnitLite" Version="3.13.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="bin\Release\" />
+    <None Include="bin\Release\net5.0\levels\emptyfile.csv" />
+    <None Include="bin\Release\net5.0\levels\example.csv" />
+    <None Include="bin\Release\net5.0\levels\level1.csv" />
+    <None Include="bin\Release\net5.0\levels\level2.csv" />
+    <None Include="bin\Release\net5.0\levels\level3.csv" />
+    <None Include="bin\Release\net5.0\levels\sample.csv" />
+    <None Include="bin\Release\net5.0\levels\savegame.csv" />
+    <None Include="bin\Release\net5.0\nunit.engine.api.dll" />
+    <None Include="bin\Release\net5.0\nunit.engine.core.dll" />
+    <None Include="bin\Release\net5.0\nunit.engine.dll" />
+    <None Include="bin\Release\net5.0\nunit.framework.dll" />
+    <None Include="bin\Release\net5.0\NUnit3.TestAdapter.dll" />
+    <None Include="bin\Release\net5.0\NUnit3.TestAdapter.pdb" />
+    <None Include="bin\Release\net5.0\nunitlite.dll" />
+    <None Include="bin\Release\net5.0\ref\Sokoban.dll" />
+    <None Include="bin\Release\net5.0\Sokoban.dll" />
+    <None Include="bin\Release\net5.0\Sokoban.exe" />
+    <None Include="bin\Release\net5.0\Sokoban.pdb" />
+    <None Include="bin\Release\net5.0\testcentric.engine.metadata.dll" />
   </ItemGroup>
 
 </Project>
