@@ -68,7 +68,10 @@ Study project: Sokoban with add-ons
    
    help - список допустимых команд
 
+Упрощенная блок-схема алгоритма, реализующего основной игровой цикл, доступна по ссылке:
+
+https://github.com/Myaroslavtsev/Sokoban/blob/NewMapCellStructure/ConsoleApp1/BlockDiagram.pdf
 
 Диаграмма классов доступна по ссылке:
 
-https://github.com/Myaroslavtsev/Sokoban/blob/master/ConsoleApp1/ClassDiagram.pdf
+https://github.com/Myaroslavtsev/Sokoban/blob/NewMapCellStructure/ConsoleApp1/ClassDiagram.pdf
